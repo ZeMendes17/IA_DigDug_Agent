@@ -15,7 +15,7 @@ class Agent():
                 self.enemy_positions.append(enemy["pos"])
 
             # see which one is the closest
-            self.closest_enemy = self.get_closest(self.my_position, self.enemy_positions)
+            self.closest_enemy = self.get_closest()
 
             key = self.direction_to_enemy(self.my_position, self.closest_enemy)
         else:
@@ -54,6 +54,6 @@ class Agent():
             return " "
         
     # function that sees if digdug needs to shoot
-    def shoot(self):
+    # def shoot(self):
         # if the closest enemy is in the same row
 
