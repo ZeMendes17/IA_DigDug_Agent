@@ -27,6 +27,8 @@ async def agent_loop(server_address="localhost:8000", agent_name="student"):
         # SPRITES = pygame.image.load("data/pad.png").convert_alpha()
         # SCREEN.blit(SPRITES, (0, 0))
 
+        # create an instance of the agent
+        agent = Agent()
         while True:
             try:
                 state = json.loads(
@@ -63,9 +65,7 @@ async def agent_loop(server_address="localhost:8000", agent_name="student"):
                 ## AI agent logic ##
 
                 # create an instance of the agent
-                agent = Agent()
                 key = agent.update_state(state)
-
 
 
                 await websocket.send(
