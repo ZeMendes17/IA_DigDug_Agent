@@ -36,6 +36,35 @@ class Agent():
             self.state = state
             self.my_position = state['digdug']
 
+            if self.is_pooka_traversing(state):
+                if self.trace_back == []:
+                    domain = DigDug(self.offlimits, self.map, self.size)
+                    problem = SearchProblem(domain, self.my_position, [0, 0])
+                    tree = SearchTree(problem, "greedy")
+
+                    self.trace_back = tree.search()
+                    position = self.trace_back[0]
+                    self.trace_back = self.trace_back[1:]
+                    return position
+                
+                else:
+                    position = self.trace_back[0]
+                    self.trace_back = self.trace_back[1:]     
+
+                    if position[0] < self.my_position[0]:
+                        self.key = "a"
+                    elif position[0] > self.my_position[0]:
+                        self.key = "d"
+                    elif position[1] < self.my_position[1]:
+                        self.key = "w"
+                    elif position[1] > self.my_position[1]:
+                        self.key = "s"
+                    else:
+                        self.key = " "
+                    print(self.key)
+                    return self.key
+
+            self.trace_back = []
             id_in_enemies = True
             for e in state["enemies"]:
                 if e["id"] == self.closest_enemy_id:
@@ -95,7 +124,7 @@ class Agent():
                 else:
                     self.offlimits = [] # will have coordinates
                     enemies_to_offlimits = []
-                    print(state["enemies"])
+                    # print(state["enemies"])
                     for enemy in state["enemies"]:
                         if enemy["name"] == "Pooka":
                             if self.closest_enemy == None or self.distance(self.my_position, enemy["pos"]) < self.distance(self.my_position, self.closest_enemy["pos"]):
@@ -355,8 +384,8 @@ class Agent():
     def is_pooka_traversing(self, state):
         enemies = state["enemies"]
         for enemy in enemies:
-            if enemy["name"] == "pooka":
-                if enemy["state"] == True:
+            if enemy["name"] == "Pooka":
+                if 'traverse' in enemy:
                     return True
         return False
     
