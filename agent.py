@@ -36,33 +36,33 @@ class Agent():
             self.state = state
             self.my_position = state['digdug']
 
-            if self.is_pooka_traversing(state):
-                if self.trace_back == []:
-                    domain = DigDug(self.offlimits, self.map, self.size)
-                    problem = SearchProblem(domain, self.my_position, [0, 0])
-                    tree = SearchTree(problem, "greedy")
+            # if self.is_pooka_traversing(state):
+            #     if self.trace_back == []:
+            #         domain = DigDug(self.offlimits, self.map, self.size)
+            #         problem = SearchProblem(domain, self.my_position, [0, 0])
+            #         tree = SearchTree(problem, "greedy")
 
-                    self.trace_back = tree.search()
-                    position = self.trace_back[0]
-                    self.trace_back = self.trace_back[1:]
-                    return position
+            #         self.trace_back = tree.search()
+            #         position = self.trace_back[0]
+            #         self.trace_back = self.trace_back[1:]
+            #         return position
                 
-                else:
-                    position = self.trace_back[0]
-                    self.trace_back = self.trace_back[1:]     
+            #     else:
+            #         position = self.trace_back[0]
+            #         self.trace_back = self.trace_back[1:]     
 
-                    if position[0] < self.my_position[0]:
-                        self.key = "a"
-                    elif position[0] > self.my_position[0]:
-                        self.key = "d"
-                    elif position[1] < self.my_position[1]:
-                        self.key = "w"
-                    elif position[1] > self.my_position[1]:
-                        self.key = "s"
-                    else:
-                        self.key = " "
-                    print(self.key)
-                    return self.key
+            #         if position[0] < self.my_position[0]:
+            #             self.key = "a"
+            #         elif position[0] > self.my_position[0]:
+            #             self.key = "d"
+            #         elif position[1] < self.my_position[1]:
+            #             self.key = "w"
+            #         elif position[1] > self.my_position[1]:
+            #             self.key = "s"
+            #         else:
+            #             self.key = " "
+            #         print(self.key)
+            #         return self.key
 
             self.trace_back = []
             id_in_enemies = True
@@ -146,11 +146,16 @@ class Agent():
                                 else:   
                                     enemies_to_offlimits.append(enemy)
 
+                            else:
+                                enemies_to_offlimits.append(enemy)
+
                     self.closest_enemy_id = self.closest_enemy["id"]
                     print(self.closest_enemy)
                     
                     # offlimits
                     self.offlimits = self.get_offlimits(state["rocks"], enemies_to_offlimits)
+
+                    print(self.offlimits)
 
                     # get the start and end of the tunnel
                     start, end = self.get_entries(self.closest_enemy)
@@ -287,6 +292,7 @@ class Agent():
                         offlimits.append([x, i + 1])
                         offlimits.append([x, i - 1])
                         offlimits.append([x + 1, i])
+                        offlimits.append([x - 1, i])
                     else:
                         break
                 for i in range(y, -1, -1):
@@ -295,6 +301,7 @@ class Agent():
                         offlimits.append([x, i + 1])
                         offlimits.append([x, i - 1])
                         offlimits.append([x + 1, i])
+                        offlimits.append([x - 1, i])
                     else:
                         break
 
@@ -305,6 +312,7 @@ class Agent():
                         offlimits.append([i + 1, y])
                         offlimits.append([i - 1, y])
                         offlimits.append([i, y + 1])
+                        offlimits.append([i, y - 1])
                     else:
                         break
                 for i in range(x, -1, -1):
@@ -313,6 +321,7 @@ class Agent():
                         offlimits.append([i + 1, y])
                         offlimits.append([i - 1, y])
                         offlimits.append([i, y + 1])
+                        offlimits.append([i, y - 1])
                     else:
                         break
 
