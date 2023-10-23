@@ -159,20 +159,6 @@ class Agent():
                         self.key = " "
                         return self.key
                     
-                elif self.shoot:
-                    enemy = None
-                    for e in state["enemies"]:
-                        if e["id"] == self.closest_enemy_id:
-                            enemy = e
-                            break
-
-                    if self.distance(self.my_position, enemy["pos"]) > 3:
-                        self.key = self.direction_to_enemy(self.my_position, enemy["pos"])
-                        return self.key
-                    
-                    else:
-                        self.key = "A"
-                        return self.key
 
                 else:
                     self.offlimits = [] # will have coordinates
