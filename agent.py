@@ -159,7 +159,18 @@ class Agent():
 
                     # get the start and end of the tunnel
                     start, end = self.get_entries(self.closest_enemy)
-                    closest = start if self.distance(self.my_position, start) < self.distance(self.my_position, end) else end
+
+                    # check if they both exist
+                    if start != None and end != None:
+                        # check which one is the closest
+                        closest = start if self.distance(self.my_position, start) < self.distance(self.my_position, end) else end
+
+                    elif start == None and end != None:
+                        closest = end
+                    elif start != None and end == None:
+                        closest = start
+                    else:
+                        print("Error: no start or end")
 
                     # using the domain, get the path to the closest enemy
                     domain = DigDug(self.offlimits, self.map, self.size)
@@ -284,47 +295,50 @@ class Agent():
         for enemy in enemies:
             x = enemy["pos"][0]
             y = enemy["pos"][1]
-            if self.map[x][y+1] == 0 or self.map[x][y-1] == 0: # vertical
-                column = self.map[x]
-                for i in range(y, len(column)):
-                    if column[i] == 0:
-                        offlimits.append([x, i])
-                        offlimits.append([x, i + 1])
-                        offlimits.append([x, i - 1])
-                        offlimits.append([x + 1, i])
-                        offlimits.append([x - 1, i])
-                    else:
-                        break
-                for i in range(y, -1, -1):
-                    if column[i] == 0:
-                        offlimits.append([x, i])
-                        offlimits.append([x, i + 1])
-                        offlimits.append([x, i - 1])
-                        offlimits.append([x + 1, i])
-                        offlimits.append([x - 1, i])
-                    else:
-                        break
+            try:
+                if self.map[x][y+1] == 0 or self.map[x][y-1] == 0: # vertical
+                    column = self.map[x]
+                    for i in range(y, len(column)):
+                        if column[i] == 0:
+                            offlimits.append([x, i])
+                            offlimits.append([x, i + 1])
+                            offlimits.append([x, i - 1])
+                            offlimits.append([x + 1, i])
+                            offlimits.append([x - 1, i])
+                        else:
+                            break
+                    for i in range(y, -1, -1):
+                        if column[i] == 0:
+                            offlimits.append([x, i])
+                            offlimits.append([x, i + 1])
+                            offlimits.append([x, i - 1])
+                            offlimits.append([x + 1, i])
+                            offlimits.append([x - 1, i])
+                        else:
+                            break
 
-            elif self.map[x+1][y] == 0 or self.map[x-1][y] == 0: # horizontal
-                for i in range(x, self.size[0]):
-                    if self.map[i][y] == 0:
-                        offlimits.append([i, y])
-                        offlimits.append([i + 1, y])
-                        offlimits.append([i - 1, y])
-                        offlimits.append([i, y + 1])
-                        offlimits.append([i, y - 1])
-                    else:
-                        break
-                for i in range(x, -1, -1):
-                    if self.map[i][y] == 0:
-                        offlimits.append([i, y])
-                        offlimits.append([i + 1, y])
-                        offlimits.append([i - 1, y])
-                        offlimits.append([i, y + 1])
-                        offlimits.append([i, y - 1])
-                    else:
-                        break
-
+                elif self.map[x+1][y] == 0 or self.map[x-1][y] == 0: # horizontal
+                    for i in range(x, self.size[0]):
+                        if self.map[i][y] == 0:
+                            offlimits.append([i, y])
+                            offlimits.append([i + 1, y])
+                            offlimits.append([i - 1, y])
+                            offlimits.append([i, y + 1])
+                            offlimits.append([i, y - 1])
+                        else:
+                            break
+                    for i in range(x, -1, -1):
+                        if self.map[i][y] == 0:
+                            offlimits.append([i, y])
+                            offlimits.append([i + 1, y])
+                            offlimits.append([i - 1, y])
+                            offlimits.append([i, y + 1])
+                            offlimits.append([i, y - 1])
+                        else:
+                            break
+            except IndexError:
+                # if the block is out of the map it will be ignored but it will continue the loop
+                continue
         return offlimits
     
     def get_entries(self, enemy):
@@ -333,37 +347,46 @@ class Agent():
         start = enemy["pos"]
         end = enemy["pos"]
 
-        if self.map[x][y+1] == 0 or self.map[x][y-1] == 0: # vertical
-            column = self.map[x]
-            for i in range(y, len(column)):
-                if column[i] == 0:
-                    end = [x, i]
-                else:
-                    break
-            for i in range(y, -1, -1):
-                if column[i] == 0:
-                    start = [x, i]
-                else:
-                    break
+        try:
+            if self.map[x][y+1] == 0 or self.map[x][y-1] == 0: # vertical
+                column = self.map[x]
+                for i in range(y, len(column)):
+                    if column[i] == 0:
+                        end = [x, i]
+                    else:
+                        break
+                for i in range(y, -1, -1):
+                    if column[i] == 0:
+                        start = [x, i]
+                    else:
+                        break
 
-            start = [start[0], start[1] - 2] 
-            end = [end[0], end[1] + 2]
+                start = [start[0], start[1] - 2] 
+                end = [end[0], end[1] + 2]
 
-        elif self.map[x+1][y] == 0 or self.map[x-1][y] == 0: # horizontal
-            for i in range(x, self.size[0]):
-                if self.map[i][y] == 0:
-                    end = [i, y]
-                else:
-                    break
-            for i in range(x, -1, -1):
-                if self.map[i][y] == 0:
-                    start = [i, y]
-                else:
-                    break
+            elif self.map[x+1][y] == 0 or self.map[x-1][y] == 0: # horizontal
+                for i in range(x, self.size[0]):
+                    if self.map[i][y] == 0:
+                        end = [i, y]
+                    else:
+                        break
+                for i in range(x, -1, -1):
+                    if self.map[i][y] == 0:
+                        start = [i, y]
+                    else:
+                        break
 
-            start = [start[0] - 2, start[1]]
-            end = [end[0] + 2, end[1]]
-
+                start = [start[0] - 2, start[1]]
+                end = [end[0] + 2, end[1]]
+            
+        except IndexError:
+            # se if the block that is out of limits is the end or the start
+            if start == enemy["pos"]:
+                start = None
+            elif end == enemy["pos"]:
+                end = None
+            pass
+        
         return (start, end)
                     
     
