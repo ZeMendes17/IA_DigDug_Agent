@@ -20,6 +20,7 @@ class Agent():
         self.wait_to_shoot = False
         self.shoot = False
         self.closest_enemy_id = None
+        self.my_tunel = []
 
 
     def update_state(self, state):
@@ -35,34 +36,76 @@ class Agent():
             # we will follow the closest one
             self.state = state
             self.my_position = state['digdug']
+            self.my_tunel.append(self.my_position)
 
-            # if self.is_pooka_traversing(state):
-            #     if self.trace_back == []:
-            #         domain = DigDug(self.offlimits, self.map, self.size)
-            #         problem = SearchProblem(domain, self.my_position, [0, 0])
-            #         tree = SearchTree(problem, "greedy")
+            for enemy in state["enemies"]:
+                if enemy["pos"] in self.my_tunel:
+                    self.wait_to_shoot = False
+                    if self.distance(self.my_position, enemy["pos"]) < 3:
+                        self.key = "A"
+                        return self.key
 
-            #         self.trace_back = tree.search()
-            #         position = self.trace_back[0]
-            #         self.trace_back = self.trace_back[1:]
-            #         return position
+
+                    domain = DigDug([], self.my_tunel, self.size)
+                    problem = SearchProblem(domain, self.my_position, enemy["pos"])
+                    tree = SearchTree(problem, "greedy")
+
+                    position = tree.search()[1]
+                    
+                    if position[0] < self.my_position[0]:
+                        self.key = "a"
+                    elif position[0] > self.my_position[0]:
+                        self.key = "d"
+                    elif position[1] < self.my_position[1]:
+                        self.key = "w"
+                    elif position[1] > self.my_position[1]:
+                        self.key = "s"
+                    else:
+                        self.key = " "
+
+                    return self.key
+
+            if self.is_pooka_traversing(state):
+                self.shoot = False
+                self.wait_to_shoot = False
+                if self.trace_back == []:
+                    domain = DigDug(self.offlimits, self.map, self.size)
+                    problem = SearchProblem(domain, self.my_position, [0, 0])
+                    tree = SearchTree(problem, "greedy")
+
+                    self.trace_back = tree.search()
+                    position = self.trace_back[0]
+                    self.trace_back = self.trace_back[1:]
+                    
+                    if position[0] < self.my_position[0]:
+                        self.key = "a"
+                    elif position[0] > self.my_position[0]:
+                        self.key = "d"
+                    elif position[1] < self.my_position[1]:
+                        self.key = "w"
+                    elif position[1] > self.my_position[1]:
+                        self.key = "s"
+                    else:
+                        self.key = " "
+
+                    return self.key
                 
-            #     else:
-            #         position = self.trace_back[0]
-            #         self.trace_back = self.trace_back[1:]     
+                else:
+                    position = self.trace_back[0]
+                    self.trace_back = self.trace_back[1:]     
 
-            #         if position[0] < self.my_position[0]:
-            #             self.key = "a"
-            #         elif position[0] > self.my_position[0]:
-            #             self.key = "d"
-            #         elif position[1] < self.my_position[1]:
-            #             self.key = "w"
-            #         elif position[1] > self.my_position[1]:
-            #             self.key = "s"
-            #         else:
-            #             self.key = " "
-            #         print(self.key)
-            #         return self.key
+                    if position[0] < self.my_position[0]:
+                        self.key = "a"
+                    elif position[0] > self.my_position[0]:
+                        self.key = "d"
+                    elif position[1] < self.my_position[1]:
+                        self.key = "w"
+                    elif position[1] > self.my_position[1]:
+                        self.key = "s"
+                    else:
+                        self.key = " "
+                    print(self.key)
+                    return self.key
 
             self.trace_back = []
             id_in_enemies = True
@@ -100,7 +143,17 @@ class Agent():
                     if orientation == self.oposite_direction(enemy["dir"]):
                         self.key = orientation
                         self.wait_to_shoot = False
-                        self.shoot = True
+                        # self.shoot = True
+
+                        if orientation == "w":
+                            self.my_tunel = self.my_tunel + self.get_tunnel(orientation, [self.my_position[0], self.my_position[1] - 2])
+                        elif orientation == "s":
+                            self.my_tunel = self.my_tunel + self.get_tunnel(orientation, [self.my_position[0], self.my_position[1] + 2])
+                        elif orientation == "a":
+                            self.my_tunel = self.my_tunel + self.get_tunnel(orientation, [self.my_position[0] - 2, self.my_position[1]])
+                        elif orientation == "d":
+                            self.my_tunel = self.my_tunel + self.get_tunnel(orientation, [self.my_position[0] + 2, self.my_position[1]])
+
                         return self.key
                     else:
                         self.key = " "
@@ -498,6 +551,39 @@ class Agent():
         elif direction == 1:
             return "d"
         return None
+    
+    def get_tunnel(self, orientation, position):
+        tunnel = []
+        if orientation == "w":
+            for i in range(position[1], -1, -1):
+                if self.map[position[0]][i] == 0:
+                    tunnel.append([position[0], i])
+                else:
+                    break
+
+        elif orientation == "s":
+            for i in range(position[1], self.size[1]):
+                if self.map[position[0]][i] == 0:
+                    tunnel.append([position[0], i])
+                else:
+                    break
+
+        elif orientation == "a":
+            for i in range(position[0], -1, -1):
+                if self.map[i][position[1]] == 0:
+                    tunnel.append([i, position[1]])
+                else:
+                    break
+
+        elif orientation == "d":
+            for i in range(position[0], self.size[0]):
+                if self.map[i][position[1]] == 0:
+                    tunnel.append([i, position[1]])
+                else:
+                    break
+        return tunnel
+
+
         
     #def pooka_in_my_tunel(self, p)
 
