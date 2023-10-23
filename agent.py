@@ -51,6 +51,10 @@ class Agent():
                     tree = SearchTree(problem, "greedy")
 
                     position = tree.search()[1]
+                    print("My position", self.my_position)
+                    print("Enemy position", enemy["pos"])
+                    print("Position", position)
+                    print()
                     
                     if position[0] < self.my_position[0]:
                         self.key = "a"
@@ -240,6 +244,11 @@ class Agent():
 
             
         else:
+            self.my_tunel = []
+            self.offlimits = set()
+            self.trace_back = []
+            self.path = []
+            self.wait_to_shoot = False
             self.key = " "   
 
         return self.key
