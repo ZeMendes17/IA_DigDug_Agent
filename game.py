@@ -92,6 +92,10 @@ class Game:
         self._rope = Rope(self.map)
 
     @property
+    def level(self):
+        return self.map.level
+
+    @property
     def running(self):
         return self._running
 
@@ -185,6 +189,7 @@ class Game:
 
         if len(self._enemies) == 0:
             logger.info(f"Level {self.map.level} completed")
+            self._score += (self.map.level * TIMEOUT - self._total_steps) // 10 # update score before new level
             self.next_level(self.map.level + 1)
 
     def kill_digdug(self):
@@ -234,6 +239,8 @@ class Game:
             )
 
         self.update_digdug()
+
+        self.collision()
 
         for enemy in self._enemies:
             if enemy.alive:
