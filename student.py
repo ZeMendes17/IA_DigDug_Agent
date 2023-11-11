@@ -8,7 +8,7 @@ import os
 import pygame
 import websockets
 
-from agent import Agent
+from agent2 import Agent
 import time
 
 pygame.init()
