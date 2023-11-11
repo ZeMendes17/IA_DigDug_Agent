@@ -83,7 +83,6 @@ class Agent():
                         return self.key
                 else:
                     self.offlimits = []
-                    enemy_offlimits = []
 
                     if self.closest_enemy not in state['enemies']:
                         self.closest_enemy = None
@@ -91,26 +90,15 @@ class Agent():
                     for enemy in state['enemies']:
                         if enemy['name'] == 'Pooka':
                             if self.closest_enemy == None or self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
-                                if self.closest_enemy != None:
-                                    enemy_offlimits.append(self.closest_enemy)
                                 self.closest_enemy = enemy
-                            else:
-                                enemy_offlimits.append(enemy)
 
                         elif enemy['name'] == 'Fygar':
                             enemy_names = [e['name'] for e in state['enemies']]
                             if 'Pooka' not in enemy_names:
                                 if self.closest_enemy == None or self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
-                                    if self.closest_enemy != None:
-                                        enemy_offlimits.append(self.closest_enemy)
                                     self.closest_enemy = enemy
-                                else:
-                                    enemy_offlimits.append(enemy)
-                            else:
-                                enemy_offlimits.append(enemy)
 
-
-                    self.offlimits  = self.get_offlimits(state['rocks'], enemy_offlimits)
+                    self.offlimits  = self.get_offlimits(state['rocks'], self.state['enemies'])
 
                     start, end = self.get_entries(self.closest_enemy)
 
@@ -300,40 +288,56 @@ class Agent():
                     column = self.map[x]
                     for i in range(y, len(column)):
                         if column[i] == 0:
-                            offlimits.append([x, i])
-                            offlimits.append([x, i + 1])
-                            offlimits.append([x, i - 1])
-                            offlimits.append([x + 1, i])
-                            offlimits.append([x - 1, i])
+                            if enemy == self.closest_enemy:
+                                offlimits.append([x + 1, i])
+                                offlimits.append([x - 1, i])
+                            else:
+                                offlimits.append([x, i])
+                                offlimits.append([x, i + 1])
+                                offlimits.append([x, i - 1])
+                                offlimits.append([x + 1, i])
+                                offlimits.append([x - 1, i])
                         else:
                             break
                     for i in range(y, -1, -1):
                         if column[i] == 0:
-                            offlimits.append([x, i])
-                            offlimits.append([x, i + 1])
-                            offlimits.append([x, i - 1])
-                            offlimits.append([x + 1, i])
-                            offlimits.append([x - 1, i])
+                            if enemy == self.closest_enemy:
+                                offlimits.append([x + 1, i])
+                                offlimits.append([x - 1, i])
+                            else:
+                                offlimits.append([x, i])
+                                offlimits.append([x, i + 1])
+                                offlimits.append([x, i - 1])
+                                offlimits.append([x + 1, i])
+                                offlimits.append([x - 1, i])
                         else:
                             break
 
                 elif self.map[x+1][y] == 0 or self.map[x-1][y] == 0: # horizontal
                     for i in range(x, self.size[0]):
                         if self.map[i][y] == 0:
-                            offlimits.append([i, y])
-                            offlimits.append([i + 1, y])
-                            offlimits.append([i - 1, y])
-                            offlimits.append([i, y + 1])
-                            offlimits.append([i, y - 1])
+                            if enemy == self.closest_enemy:
+                                offlimits.append([i, y + 1])
+                                offlimits.append([i, y - 1])
+                            else:
+                                offlimits.append([i, y])
+                                offlimits.append([i + 1, y])
+                                offlimits.append([i - 1, y])
+                                offlimits.append([i, y + 1])
+                                offlimits.append([i, y - 1])
                         else:
                             break
                     for i in range(x, -1, -1):
                         if self.map[i][y] == 0:
-                            offlimits.append([i, y])
-                            offlimits.append([i + 1, y])
-                            offlimits.append([i - 1, y])
-                            offlimits.append([i, y + 1])
-                            offlimits.append([i, y - 1])
+                            if enemy == self.closest_enemy:
+                                offlimits.append([i, y + 1])
+                                offlimits.append([i, y - 1])
+                            else:
+                                offlimits.append([i, y])
+                                offlimits.append([i + 1, y])
+                                offlimits.append([i - 1, y])
+                                offlimits.append([i, y + 1])
+                                offlimits.append([i, y - 1])
                         else:
                             break
             except IndexError:
