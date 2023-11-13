@@ -5,15 +5,11 @@ import json
 import os
 
 # Next 4 lines are not needed for AI agents, please remove them from your code!
-import pygame
 import websockets
 
 from agent2 import Agent
 import time
 
-pygame.init()
-program_icon = pygame.image.load("data/icon2.png")
-pygame.display.set_icon(program_icon)
 
 
 
@@ -38,30 +34,6 @@ async def agent_loop(server_address="localhost:8000", agent_name="student"):
                 
                 # Next lines are only for the Human Agent, the key values are nonetheless the correct ones!
                 key = ""
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-
-                    # if event.type == pygame.KEYDOWN:
-                    #     if event.key == pygame.K_UP:
-                    #         key = "w"
-                    #     elif event.key == pygame.K_LEFT:
-                    #         key = "a"
-                    #     elif event.key == pygame.K_DOWN:
-                    #         key = "s"
-                    #     elif event.key == pygame.K_RIGHT:
-                    #         key = "d"
-                    #     elif event.key == pygame.K_SPACE:
-                    #         key = " "
-                    #     elif event.key == pygame.K_a:
-                    #         key = "A"
-                    #     elif event.key == pygame.K_b:
-                    #         key = "B"
-
-                    #     elif event.key == pygame.K_d:
-                    #         import pprint
-
-                    #         pprint.pprint(state)
 
                 ## AI agent logic ##
 

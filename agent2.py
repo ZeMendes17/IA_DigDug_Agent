@@ -46,28 +46,32 @@ class Agent():
                     self.key = " "
                     return self.key
 
-                if self.trace_back == []:
-                    st = self.get_tree_search([0, 0], self.my_tunnel).search()[1:]
-                    next_position = st[0]
-                    self.trace_back = st[1:]
+                possible_positions = []
+                if self.my_position[0]-1 >= 0 and self.map[self.my_position[0] - 1][self.my_position[1]] == 0:
+                    possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
 
-                    return self.go_to(next_position)
+                if self.my_position[0]+1 <= self.size[0] and self.map[self.my_position[0] + 1][self.my_position[1]] == 0:
+                    possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
 
-                else:
-                    next_position = self.trace_back[0]
-                    self.trace_back = self.trace_back[1:]
-                    # reset variables
-                    self.closest_enemy = None
-                    self.offlimits = set()
-                    self.path = []
-                    self.wait = False
+                if self.my_position[1]-1 >= 0 and self.map[self.my_position[0]][self.my_position[1] - 1] == 0:
+                    possible_positions.append([self.my_position[0], self.my_position[1] - 1])
 
-                return self.go_to(next_position)
+                if self.my_position[1]+1 <= self.size[1] and self.map[self.my_position[0]][self.my_position[1] + 1] == 0:
+                    possible_positions.append([self.my_position[0], self.my_position[1] + 1])
 
+                # get what is the closest position to [0, 0]
+                closest_position = possible_positions[0]
+                for position in possible_positions:
+                    if self.distance(position, [0, 0]) < self.distance(closest_position, [0, 0]):
+                        closest_position = position
+
+                self.key = self.go_to(closest_position)
+                return self.key
+
+                
 
             # get enemies in my tunnel
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
-            print(in_my_tunnel)
             if in_my_tunnel != []:
                 print("ENTROU")
                 # get the closest enemy
@@ -121,6 +125,8 @@ class Agent():
                     below_rocks = [[rock[0], rock[1] + 1] for rock in rocks]
                     self.offlimits += rocks
                     self.offlimits += below_rocks
+                    # if an offlimit is one of the entries, remove it
+                    entries = [entry for entry in entries if entry[0] not in self.offlimits]
                     self.entry = self.closest_entry(entries)
 
                     st = self.get_tree_search(self.entry[0], self.map)
