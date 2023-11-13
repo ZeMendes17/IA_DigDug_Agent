@@ -3,16 +3,18 @@ from digdug import *
 class Agent():
     def __init__(self):
         self.state = None
-        self.action = " "
+        self.key = " "
         self.map = None
         self.size = None
         self.my_position = None
-        self.closest_enemy = None
         self.my_tunnel = []
+
+        self.closest_enemy = None
         self.offlimits = set()
         self.trace_back = []
         self.path = []
         self.wait = False
+        self.entry = None
 
     def update_state(self, state):
         if 'map' in state:
@@ -24,7 +26,36 @@ class Agent():
             self.my_position = state['digdug']
             # update the map with the new position
             self.map[self.my_position[0]][self.my_position[1]] = 0
+            # get my updated tunnel
             self.my_tunnel = self.get_tunnel(self.my_position[0], self.my_position[1], self.map, [])
+
+            ## if you want to see the map
+            # print(self.print_enemy_tunnels(self.get_enemy_tunnels(state['enemies'])))
+
+            # if pooka is traversing, go back
+            if self.is_pooka_traversing(state):
+                if self.my_position == [0, 0]:
+                    self.key = " "
+                    return self.key
+
+                if self.trace_back == []:
+                    st = self.get_tree_search([0, 0], self.my_tunnel).search()[1:]
+                    next_position = st[0]
+                    self.trace_back = st[1:]
+
+                    return self.go_to(next_position)
+
+                else:
+                    next_position = self.trace_back[0]
+                    self.trace_back = self.trace_back[1:]
+                    # reset variables
+                    self.closest_enemy = None
+                    self.offlimits = set()
+                    self.path = []
+                    self.wait = False
+
+                return self.go_to(next_position)
+
 
             # get enemies in my tunnel
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
@@ -36,86 +67,49 @@ class Agent():
                         self.closest_enemy = enemy
 
                 if self.distance(self.my_position, self.closest_enemy['pos']) < 3:
-                        self.key = "A"
-                        return self.key
+                    self.key = "A"
+                    return self.key
 
                 st = self.get_tree_search(self.closest_enemy['pos'], self.my_tunnel)
                 next_position = st.search()[1]
                 
-                return self.go_to(next_position)
-            
-            if self.is_pooka_traversing(state):
-                if self.trace_back == []:
-                    st = self.get_tree_search(self.closest_enemy['pos'], self.my_tunnel).search()[1:]
-                    next_position = st[0]
-                    self.trace_back = st[1:]
-
-                    return self.go_to(next_position)
-
-                else:
-                    next_position = self.trace_back[0]
-                    self.trace_back = self.trace_back[1:]
+                # reset variables
+                self.offlimits = set()
+                self.path = []
+                self.wait = False
 
                 return self.go_to(next_position)
             
             self.trace_back = []
-            # agora ver o inimigo mais próximo, pegar no tunel dele e meter todos os outros
-            # em offlimits
-            # nao esquecer que se um pooka der traverse temos de limpar os offlimits
-            # melhor maneira de entrar no tunel
+
             if self.path == []:
                 if self.wait:
-                    enemy = None
+                    self.key = " "
                     
-                    for e in state['enemies']:
-                        if e['id'] == self.closest_enemy['id']:
-                            enemy = e
-                            break
-                    
-                    orientation = self.go_to(enemy['pos'])   
-
-                    if orientation == self.dir_to_key(enemy['dir']):
-                        self.key = orientation
+                    if self.enter_tunnel():
                         self.wait = False
-                        return self.key       
-                    else:
-                        self.key = " "
-                        return self.key
+                        self.key = self.go_to(self.entry[1])
+                    
+                    return self.key
+
+
                 else:
-                    self.offlimits = []
+                    enemy_tunnels = self.get_enemy_tunnels(state['enemies'])
+                    print(state['enemies'])
+                    print()
+                    for tunnel in enemy_tunnels:
+                        print(tunnel)
+                    entries = [entry for tunnel in enemy_tunnels for entry in self.get_tunnel_entries(tunnel)]
+                    self.offlimits = [border for tunnel in enemy_tunnels for border in self.get_tunnel_borders(tunnel)]
 
-                    if self.closest_enemy not in state['enemies']:
-                        self.closest_enemy = None
+                    self.entry = self.closest_entry(entries)
 
-                    for enemy in state['enemies']:
-                        if enemy['name'] == 'Pooka':
-                            if self.closest_enemy == None or self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
-                                self.closest_enemy = enemy
-
-                        elif enemy['name'] == 'Fygar':
-                            enemy_names = [e['name'] for e in state['enemies']]
-                            if 'Pooka' not in enemy_names:
-                                if self.closest_enemy == None or self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
-                                    self.closest_enemy = enemy
-
-                    self.offlimits  = self.get_offlimits(state['rocks'], self.state['enemies'])
-
-                    start, end = self.get_entries(self.closest_enemy)
-
-                    # check if they both exist
-                    if start != None and end != None:
-                        # check which one is the closest
-                        closest = start if self.distance(self.my_position, start) < self.distance(self.my_position, end) else end
-
-                    elif start == None and end != None:
-                        closest = end
-                    elif start != None and end == None:
-                        closest = start
-                    else:
-                        print("Error: no start or end")
-
-                    st = self.get_tree_search(closest, self.map)
+                    st = self.get_tree_search(self.entry[0], self.map)
                     self.path = st.search()[1:]
+                    self.key = self.go_to(self.path[0])
+                    self.path = self.path[1:]
+
+                    return self.key
 
             else:
                 if len(self.path) == 1:
@@ -185,16 +179,16 @@ class Agent():
     # funtion to go to a given position
     def go_to(self, position):
         if self.my_position[0] < position[0]:
-            self.key = "d"
+            key = "d"
         elif self.my_position[0] > position[0]:
-            self.key = "a"
+            key = "a"
         elif self.my_position[1] < position[1]:
-            self.key = "s"
+            key = "s"
         elif self.my_position[1] > position[1]:
-            self.key = "w"
+            key = "w"
         else:
-            self.key = " "
-        return self.key
+            key = " "
+        return key
     
     def dir_to_key(self, direction):
         if direction == 0:
@@ -207,146 +201,155 @@ class Agent():
             return "d"
         else:
             return None
-        
-    # function that gets map when it is received and gets important information from it
-    def get_offlimits(self, rocks, enemies):
-        offlimits = []
-        # rocks and the square directly below
-        for rock in rocks: # for now
-            offlimits.append(rock["pos"])
-            offlimits.append([rock["pos"][0], rock["pos"][1] + 1])
 
-        # it is better not to perfurate other enemies tunnels
-        offlimits = offlimits + self.tunnel_offlimits(enemies)
-
-        # remove duplicates
-        new_offlimits = []
-        for offlimit in offlimits:
-            if offlimit not in new_offlimits:
-                new_offlimits.append(offlimit)
-
-        return new_offlimits
-    
-    # function to get the entries of the closest enemy tunnel
-    def get_entries(self, enemy):
-        x = enemy["pos"][0]
-        y = enemy["pos"][1]
-        start = enemy["pos"]
-        end = enemy["pos"]
-
-        try:
-            if self.map[x][y+1] == 0 or self.map[x][y-1] == 0: # vertical
-                column = self.map[x]
-                for i in range(y, len(column)):
-                    if column[i] == 0:
-                        end = [x, i]
-                    else:
-                        break
-                for i in range(y, -1, -1):
-                    if column[i] == 0:
-                        start = [x, i]
-                    else:
-                        break
-
-                start = [start[0], start[1] - 2] 
-                end = [end[0], end[1] + 2]
-
-            elif self.map[x+1][y] == 0 or self.map[x-1][y] == 0: # horizontal
-                for i in range(x, self.size[0]):
-                    if self.map[i][y] == 0:
-                        end = [i, y]
-                    else:
-                        break
-                for i in range(x, -1, -1):
-                    if self.map[i][y] == 0:
-                        start = [i, y]
-                    else:
-                        break
-
-                start = [start[0] - 2, start[1]]
-                end = [end[0] + 2, end[1]]
-            
-        except IndexError:
-            # se if the block that is out of limits is the end or the start
-            if start == enemy["pos"]:
-                start = None
-            elif end == enemy["pos"]:
-                end = None
-            pass
-        
-        return (start, end)
-    
-    # function that gets the offlimits around the fygar tunnels
-    def tunnel_offlimits(self, enemies):
-        offlimits = []
-
+    # function to get all enemy tunnels
+    def get_enemy_tunnels(self, enemies):
+        tunnels = []
         for enemy in enemies:
-            x = enemy["pos"][0]
-            y = enemy["pos"][1]
-            try:
-                if self.map[x][y+1] == 0 or self.map[x][y-1] == 0: # vertical
-                    column = self.map[x]
-                    for i in range(y, len(column)):
-                        if column[i] == 0:
-                            if enemy == self.closest_enemy:
-                                offlimits.append([x + 1, i])
-                                offlimits.append([x - 1, i])
-                            else:
-                                offlimits.append([x, i])
-                                offlimits.append([x, i + 1])
-                                offlimits.append([x, i - 1])
-                                offlimits.append([x + 1, i])
-                                offlimits.append([x - 1, i])
-                        else:
-                            break
-                    for i in range(y, -1, -1):
-                        if column[i] == 0:
-                            if enemy == self.closest_enemy:
-                                offlimits.append([x + 1, i])
-                                offlimits.append([x - 1, i])
-                            else:
-                                offlimits.append([x, i])
-                                offlimits.append([x, i + 1])
-                                offlimits.append([x, i - 1])
-                                offlimits.append([x + 1, i])
-                                offlimits.append([x - 1, i])
-                        else:
-                            break
+            tunnel = self.get_tunnel(enemy["pos"][0], enemy["pos"][1], self.map, [])
+            if tunnel not in tunnels:
+                tunnels.append(tunnel)
 
-                elif self.map[x+1][y] == 0 or self.map[x-1][y] == 0: # horizontal
-                    for i in range(x, self.size[0]):
-                        if self.map[i][y] == 0:
-                            if enemy == self.closest_enemy:
-                                offlimits.append([i, y + 1])
-                                offlimits.append([i, y - 1])
-                            else:
-                                offlimits.append([i, y])
-                                offlimits.append([i + 1, y])
-                                offlimits.append([i - 1, y])
-                                offlimits.append([i, y + 1])
-                                offlimits.append([i, y - 1])
-                        else:
-                            break
-                    for i in range(x, -1, -1):
-                        if self.map[i][y] == 0:
-                            if enemy == self.closest_enemy:
-                                offlimits.append([i, y + 1])
-                                offlimits.append([i, y - 1])
-                            else:
-                                offlimits.append([i, y])
-                                offlimits.append([i + 1, y])
-                                offlimits.append([i - 1, y])
-                                offlimits.append([i, y + 1])
-                                offlimits.append([i, y - 1])
-                        else:
-                            break
-            except IndexError:
-                # if the block is out of the map it will be ignored but it will continue the loop
-                continue
-        return offlimits
+        return tunnels
+
+    # function to get the entries of a tunnel
+    def get_tunnel_entries(self, tunnel):
+        entries = []
+        # get the furtherst left and right, up and down positions
+        left = tunnel[0]
+        right = tunnel[0]
+        up = tunnel[0]
+        down = tunnel[0]
+        for position in tunnel:
+            if position[0] < left[0]:
+                left = position
+            elif position[0] > right[0]:
+                right = position
+            elif position[1] < up[1]:
+                up = position
+            elif position[1] > down[1]:
+                down = position
+
+        # if it is not the furthest point, it is not an entry
+        for position in tunnel:
+            if left != None and position[0] == left[0] and position[1] != left[1]:
+                left = None
+            elif right != None and position[0] == right[0] and position[1] != right[1]:
+                right = None
+            elif up != None and position[1] == up[1] and position[0] != up[0]:
+                up = None
+            elif down != None and position[1] == down[1] and position[0] != down[0]:
+                down = None
+
+        # get each point 2 squares away from the entry in order to not perfurate the tunnel
+        # this will store a tuple like: (position to go to, position to enter the tunnel)
+        if left != None:
+            left = ([left[0] - 2, left[1]], [left[0] - 1, left[1]])
+        if right != None:
+            right = ([right[0] + 2, right[1]], [right[0] + 1, right[1]])
+        if up != None:
+            up = ([up[0], up[1] - 2], [up[0], up[1] - 1])
+        if down != None:
+            down = ([down[0], down[1] + 2], [down[0], down[1] + 1])
+
+        return [x for x in [left, right, up, down] if x != None and x[0][0] >= 0 and x[0][0] < len(self.map) and x[0][1] >= 0 and x[0][1] < len(self.map[0])]
+    
+    # function to get the borders of a tunnel
+    def get_tunnel_borders(self, tunnel):
+        borders = []
+        
+        for position in tunnel:
+            adjacent_cells = [[position[0]-1, position[1]], [position[0]+1, position[1]], [position[0], position[1]-1], [position[0], position[1]+1]]
+            for cell in adjacent_cells:
+                if cell[0] >= 0 and cell[0] < len(self.map) and cell[1] >= 0 and cell[1] < len(self.map[0]):
+                    if self.map[cell[0]][cell[1]] != 0 and cell not in borders:
+                        borders.append(cell)
+
+        return borders
+    
+    # function to get the closest position from a list of positions
+    def closest_entry(self, entries):
+        closest = entries[0]
+        for entry in entries:
+            if self.distance(self.my_position, entry[0]) < self.distance(self.my_position, closest[0]):
+                closest = entry
+        return closest
+    
+    # function to see if digdug can enter a tunnel
+    def enter_tunnel(self):
+        position = self.entry[1]
+        dir = self.go_to(position)
+        if dir == "a":
+            line = []
+            for i in range(position[0] - 1, 0, -1):
+                if self.map[i][position[1]] == 0:
+                    line.append([i, position[1]])
+                else:
+                    break
+
+            for enemy in self.state["enemies"]:
+                if enemy["pos"] in line and enemy["dir"] == 1:
+                    return False
+                
+        elif dir == "w":
+            column = []
+            for i in range(position[1] - 1, 0, -1):
+                if self.map[position[0]][i] == 0:
+                    column.append([position[0], i])
+                else:
+                    break
+
+            for enemy in self.state["enemies"]:
+                if enemy["pos"] in column and enemy["dir"] == 2:
+                    return False
+                
+        elif dir == "d":
+            line = []
+            for i in range(position[0] + 1, len(self.map)):
+                if self.map[i][position[1]] == 0:
+                    line.append([i, position[1]])
+                else:
+                    break
+
+            for enemy in self.state["enemies"]:
+                if enemy["pos"] in line and enemy["dir"] == 3:
+                    return False
+                
+        elif dir == "s":
+            column = []
+            for i in range(position[1] + 1, len(self.map[0])):
+                if self.map[position[0]][i] == 0:
+                    column.append([position[0], i])
+                else:
+                    break
+
+            for enemy in self.state["enemies"]:
+                if enemy["pos"] in column and enemy["dir"] == 0:
+                    return False
+
+        return True
+
+    
     
     def print_map(self, map):
         for i in range(len(map[0])):
             for j in range(len(map)):
                 print(map[j][i], end=" ")
+            print()
+
+    def print_enemy_tunnels(self, tunnels):
+        for i in range(len(self.map[0])):
+            for j in range(len(self.map)):
+                for tunnel in tunnels:
+                    if [j, i] in self.get_tunnel_borders(tunnel):
+                        print("B", end=" ")
+                        break 
+                    if [j, i] in [entry[0] for entry in self.get_tunnel_entries(tunnel)]:
+                        print("E", end=" ")
+                        break
+                    if [j, i] in tunnel:
+                        print("X", end=" ")
+                        break
+                else:
+                    print(self.map[j][i], end=" ")
             print()
