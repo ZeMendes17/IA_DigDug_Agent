@@ -209,13 +209,16 @@ class Game:
     def collision(self):
         for e in self._enemies:
             if e.pos == self._digdug.pos:
+                logger.debug(f"{e} has killed {self._digdug}")
                 self.kill_digdug()
                 e.respawn()
             if e._name == "Fygar" and e.fire:
                 if self._digdug.pos in e.fire:
+                    logger.debug(f"{e} has killed {self._digdug} with fire")
                     self.kill_digdug()
         for r in self._rocks:
             if r.pos == self._digdug.pos:
+                logger.debug(f"{r} has killed {self._digdug}")
                 self.kill_digdug()
             for e in self._enemies:
                 if r.pos == e.pos:
@@ -272,9 +275,9 @@ class Game:
 
         for e in self._enemies:
             self._state["enemies"].append(
-                {"name": str(e), "id": str(e.id), "pos": e.pos, "dir": e.lastdir}
+                {"name": e.name, "id": str(e.id), "pos": e.pos, "dir": e.lastdir}
             )
-            if e._name == "Fygar" and e.fire:
+            if e.name == "Fygar" and e.fire:
                 self._state["enemies"][-1]["fire"] = e.fire
             if e.traverse:
                 self._state["enemies"][-1]["traverse"] = e.traverse

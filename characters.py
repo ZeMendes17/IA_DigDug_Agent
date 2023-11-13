@@ -108,6 +108,8 @@ class DigDug(Character):
             self.pos = new_pos
             mapa.dig(self.pos)
 
+    def __str__(self):
+        return f"DigDug({self.pos}, lives={self._lives})"
 
 class Enemy(Character):
     def __init__(self, pos, name, speed, smart, wallpass, lives=MIN_ENEMY_LIFE):
@@ -131,8 +133,12 @@ class Enemy(Character):
     def traverse(self):
         return self._wallpass
 
+    @property
+    def name(self):
+        return self._name
+
     def __str__(self):
-        return f"{self._name}"
+        return f"{self._name}({self.pos}, {self._wallpass}, {self._smart})"
 
     def points(self, map_height):
         if self._points:
