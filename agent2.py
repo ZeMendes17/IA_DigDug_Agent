@@ -66,9 +66,13 @@ class Agent():
                     if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
                         self.closest_enemy = enemy
 
-                if self.distance(self.my_position, self.closest_enemy['pos']) < 3:
-                    self.key = "A"
-                    return self.key
+
+                # if the enemy is close enough, face it and attack
+                if (self.distance(self.my_position, self.closest_enemy['pos']) < 3):
+                    if self.is_facing_enemy():
+                        if self.only_tunnel_between():
+                            self.key = "A"
+                            return self.key
 
                 st = self.get_tree_search(self.closest_enemy['pos'], self.my_tunnel)
                 next_position = st.search()[1]
@@ -130,6 +134,58 @@ class Agent():
             self.key = " "
 
         return self.key
+    
+    # function to know if there is only tunnel between digdug and the enemy
+    def only_tunnel_between(self):
+        # first lets get our direction
+        agent_dir = self.get_direction(self.my_position, self.closest_enemy['pos'])
+
+        blocks_between = []
+
+        if agent_dir == 0: # up
+            blocks_between = [[self.my_position[0], i] for i in range(self.my_position[1]+1, self.closest_enemy['pos'][1])]
+        elif agent_dir == 1: # right
+            blocks_between = [[i, self.my_position[1]] for i in range(self.my_position[0]+1, self.closest_enemy['pos'][0])]
+
+        elif agent_dir == 2: # down
+            blocks_between = [(self.my_position[0], i) for i in range(self.closest_enemy['pos'][1] + 1, self.my_position[1])]
+
+        elif agent_dir == 3: # left
+            blocks_between = [(i, self.my_position[1]) for i in range(self.closest_enemy['pos'][0] + 1, self.my_position[0])]
+
+
+        return all(self.map[i][j] == 0 for i,j in blocks_between)
+
+    # function to know the direction the digdug is facing
+    def get_direction(self, origin, destination):
+        if origin[0] < destination[0]:
+            return 1 # right
+        
+        elif origin[0] > destination[0]:
+            return 3 # left
+        
+        elif origin[1] < destination[1]:
+            return 2 # down
+        
+        elif origin[1] > destination[1]:
+            return 0 # up
+        
+        else:
+            return -1 # No direction aka same position
+
+
+
+    # function to know if digdug is facing an enemy
+    def is_facing_enemy(self):
+        agent_dir = self.get_direction(self.my_position, self.closest_enemy['pos'])
+        
+        return (
+            (agent_dir == 0 and self.closest_enemy['dir'] in {0, 1, 2, 3})
+            or (agent_dir == 1 and self.closest_enemy['dir'] in {0, 1, 2, 3})
+            or (agent_dir == 2 and self.closest_enemy['dir'] in {0, 1, 2, 3})
+            or (agent_dir == 3 and self.closest_enemy['dir'] in {0, 1, 2, 3})
+        )
+    
 
 
     # function to get the tunel for a give position
