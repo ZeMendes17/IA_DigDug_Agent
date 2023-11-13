@@ -129,6 +129,10 @@ class Agent():
                     #     self.key = " "
                     #     return self.key
                     self.path = st.search()[1:]
+                    if self.path == []:
+                        self.wait = True
+                        self.key = " "
+                        return self.key
                     self.key = self.go_to(self.path[0])
                     self.path = self.path[1:]
 
