@@ -26,8 +26,6 @@ class Agent():
             self.size  = state['size']
 
         elif 'digdug' in state and state['enemies'] != []:
-            print("Level: ", self.level)
-            print("Count: ", self.count)
             if self.level != self.count:
                 self.key = " "
                 return self.key
@@ -69,7 +67,9 @@ class Agent():
 
             # get enemies in my tunnel
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
+            print(in_my_tunnel)
             if in_my_tunnel != []:
+                print("ENTROU")
                 # get the closest enemy
                 self.closest_enemy = in_my_tunnel[0]
                 for enemy in in_my_tunnel:
@@ -92,6 +92,7 @@ class Agent():
                 self.path = []
                 self.wait = False
 
+                print("SAIU")
                 return self.go_to(next_position)
             
             self.trace_back = []
@@ -117,7 +118,9 @@ class Agent():
                     entries = [entry for tunnel in enemy_tunnels for entry in self.get_tunnel_entries(tunnel)]
                     self.offlimits = [border for tunnel in enemy_tunnels for border in self.get_tunnel_borders(tunnel)]
                     rocks = [rock['pos'] for rock in state['rocks']]
+                    below_rocks = [[rock[0], rock[1] + 1] for rock in rocks]
                     self.offlimits += rocks
+                    self.offlimits += below_rocks
                     self.entry = self.closest_entry(entries)
 
                     st = self.get_tree_search(self.entry[0], self.map)
