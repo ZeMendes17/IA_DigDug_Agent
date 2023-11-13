@@ -16,12 +16,22 @@ class Agent():
         self.wait = False
         self.entry = None
 
+        self.level = 0
+        self.count = 1
+
     def update_state(self, state):
         if 'map' in state:
             self.map = state['map']
+            self.level = state['level']
             self.size  = state['size']
 
-        if 'digdug' in state and state['enemies'] != []:
+        elif 'digdug' in state and state['enemies'] != []:
+            print("Level: ", self.level)
+            print("Count: ", self.count)
+            if self.level != self.count:
+                self.key = " "
+                return self.key
+
             self.state = state
             self.my_position = state['digdug']
             # update the map with the new position
@@ -99,16 +109,22 @@ class Agent():
 
                 else:
                     enemy_tunnels = self.get_enemy_tunnels(state['enemies'])
-                    print(state['enemies'])
-                    print()
-                    for tunnel in enemy_tunnels:
-                        print(tunnel)
+                    # print(state['enemies'])
+                    # print(self.print_map(self.map))
+                    # print()
+                    # for tunnel in enemy_tunnels:
+                    #     print(tunnel)
                     entries = [entry for tunnel in enemy_tunnels for entry in self.get_tunnel_entries(tunnel)]
                     self.offlimits = [border for tunnel in enemy_tunnels for border in self.get_tunnel_borders(tunnel)]
-
+                    rocks = [rock['pos'] for rock in state['rocks']]
+                    self.offlimits += rocks
                     self.entry = self.closest_entry(entries)
 
                     st = self.get_tree_search(self.entry[0], self.map)
+                    # if st.search() == [self.my_position]:
+                    #     self.wait = True
+                    #     self.key = " "
+                    #     return self.key
                     self.path = st.search()[1:]
                     self.key = self.go_to(self.path[0])
                     self.path = self.path[1:]
@@ -116,7 +132,7 @@ class Agent():
                     return self.key
 
             else:
-                if len(self.path) == 1:
+                if len(self.path) <= 1:
                     self.wait = True
 
                 next_position = self.path[0]
@@ -126,13 +142,14 @@ class Agent():
             
         else:
             # reset variables
+            self.count += 1
             self.my_tunnel = []
             self.offlimits = set()
             self.trace_back = []
             self.path = []
             self.wait = False
             self.key = " "
-
+            print(self.state)
         return self.key
     
     # function to know if there is only tunnel between digdug and the enemy
