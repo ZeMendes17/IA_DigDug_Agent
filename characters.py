@@ -57,6 +57,10 @@ class Character:
     def y(self):
         return self._pos[1]
 
+    @property
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}({self._pos})"
+
     def respawn(self):
         self.pos = self._spawn_pos
 
@@ -154,6 +158,9 @@ class Enemy(Character):
     @property
     def name(self):
         return self._name
+
+    def __repr__(self) -> str:
+        return str(self)
 
     def __str__(self):
         return f"{self._name}({self.pos}, {self._wallpass}, {self._smart})"
