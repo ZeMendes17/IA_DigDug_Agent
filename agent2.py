@@ -1,5 +1,13 @@
 from digdug import *
 
+# states
+STATE_IDLE = 0
+STATE_GOAROUND = 1
+STATE_SHOOT = 2
+
+# initial state
+current_state = STATE_IDLE
+
 class Agent():
     def __init__(self):
         self.state = None
@@ -16,10 +24,16 @@ class Agent():
         self.wait = False
         self.entry = None
 
+
+        self.go_up = False
+        self.go_rigth = False
+        self.go_left = False
+        self.flag = False
+
         self.level = 0
         self.count = 1
 
-    def update_state(self, state):
+    def update_state(self, state, current_state=STATE_IDLE):
         if 'map' in state:
             self.map = state['map']
             self.level = state['level']
@@ -76,14 +90,131 @@ class Agent():
                     if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
                         self.closest_enemy = enemy
 
+                # TENTATIVA DE MATAR O FYGAR DE COSTAS
+
+                # #get our direction
+                # agent_dir = self.get_direction(self.my_position, self.closest_enemy['pos'])
+
+
+                # # if the enemy is a Fygar, go stab him from the back if he is facing you
+                # if self.closest_enemy['name'] == "Fygar":
+                #     if (3 < self.distance(self.my_position, self.closest_enemy['pos']) < 6) and (current_state == STATE_IDLE or current_state == STATE_GOAROUND):
+                #             # if fygar is facing me, go around him and stab him in the back
+                #             if self.closest_enemy['dir'] == 1:  # he is going right
+                #                 # check if our direction is 3
+                #                 if agent_dir == 3:
+                #                     current_state = STATE_GOAROUND
+                #                     # lets check if we can go up or down
+                #                     if self.go_left:
+                #                         # flag activated means we are already down or up, now we need to go left until our x is the enemy x-2
+                #                         if self.my_position[0] <= self.closest_enemy['pos'][0] - 2:
+                #                             self.key = "a"
+                #                             return self.key
+                #                         # if we passed him, go up or down
+                #                         else:
+                #                             self.key = "w"
+                #                             if self.go_up:
+                #                                 self.key = "s"
+                #                             self.go_left = False
+                #                             self.go_up = False
+                #                             return self.key
+                #                     # if there is no enemy down, go down
+                #                     if [self.my_position[0], self.my_position[1] + 1] not in [enemy['pos'] for enemy in in_my_tunnel]:
+                #                         self.key = "s"
+                #                         # after going down, go left
+                #                         self.go_left = True
+                #                         return self.key
+                #                     # if there is no enemy up, go up
+                #                     elif [self.my_position[0], self.my_position[1] - 1] not in [enemy['pos'] for enemy in in_my_tunnel]:
+                #                         self.key = "w"
+                #                         # after going up, go left
+                #                         self.go_up = True
+                #                         self.go_left = True
+                #                         return self.key
+                #                     # if there is enemy up and down, RUN
+                #                     else:
+                #                         self.key = "d"
+                #                         return self.key
+
+                #             if self.closest_enemy['dir'] == 3: # he is going left
+                #                     # check if our direction is 1
+                #                     if agent_dir == 1:
+                #                         current_state = STATE_GOAROUND
+                #                         # lets check if we can go up or down
+                #                         if self.go_rigth:
+                #                             # flag activated means we are already down or up, now we need to go rigth until our x is the enemy x+2
+                #                             if self.my_position[0] >= self.closest_enemy['pos'][0]+2:
+                #                                 self.key = "d"
+                #                                 return self.key
+
+                #                             # if we passed him, go up or down
+                #                             else:
+                #                                 self.key = "w"
+                #                                 if self.go_up:
+                #                                     self.key = "s"
+                #                                 self.go_rigth = False
+                #                                 self.go_up = False
+                #                                 current_state = STATE_SHOOT
+                #                                 return self.key
+
+                                        
+                #                         # if there is no enemy down, go down
+                #                         if [self.my_position[0], self.my_position[1] + 1] not in [enemy['pos'] for enemy in in_my_tunnel]:
+                #                             self.key = "s"
+                #                             # after going down, go rigth
+                #                             self.go_rigth = True
+                #                             return self.key
+
+                                        
+                #                         # if there is no enemy up, go up
+                #                         elif [self.my_position[0], self.my_position[1] - 1] not in [enemy['pos'] for enemy in in_my_tunnel]:
+                #                             self.key = "w"
+                #                             # after going up, go rigth
+                #                             self.go_up = True
+                #                             self.go_rigth = True
+                #                             return self.key
+                                        
+                #                         #if there is enemy up and down, RUN
+                #                         else:
+                #                             self.key = "a"
+                #                             return self.key
+
+                #             return self.key
+
+
+                # TENTATIVA DE FUGIR DO FYGAR
+
+                # #get our direction
+                # agent_dir = self.get_direction(self.my_position, self.closest_enemy['pos'])
+
+                # # if the enemy is a Fygar, go stab him from the back if he is facing you
+                # if self.closest_enemy['name'] == "Fygar":
+                #     # if they are in the same y
+                #     if self.my_position[1] == self.closest_enemy['pos'][1]:
+                #         # close but not too close
+                #         if (5 < self.distance(self.my_position, self.closest_enemy['pos']) < 10):
+                #             # if fygar is facing me, go back
+                #             if self.closest_enemy['dir'] == 1:  # he is going right
+                #                 # check if our direction is 3
+                #                 if agent_dir == 3:
+                #                     self.key = "d"
+                #                     return self.key
+                            
+                #             if self.closest_enemy['dir'] == 3: # he is going left
+                #                 # check if our direction is 1
+                #                 if agent_dir == 1:
+                #                     self.key = "a"
+                #                     return self.key
 
                 # if the enemy is close enough, face it and attack
-                if (self.distance(self.my_position, self.closest_enemy['pos']) < 3):
+                if (self.distance(self.my_position, self.closest_enemy['pos']) <= 3): #and (current_state == STATE_SHOOT or current_state == STATE_IDLE):
                     if self.is_facing_enemy():
                         if self.only_tunnel_between():
                             self.key = "A"
+                            #current_state = STATE_IDLE
                             return self.key
 
+                # ERROR
                 st = self.get_tree_search(self.closest_enemy['pos'], self.my_tunnel)
                 next_position = st.search()[1]
                 
@@ -91,6 +222,12 @@ class Agent():
                 self.offlimits = set()
                 self.path = []
                 self.wait = False
+
+                 # TENTATIVA CONTORNAR FYGAR
+                self.go_left = False
+                self.go_up = False
+                self.go_rigth = False
+
 
                 print("SAIU")
                 return self.go_to(next_position)
