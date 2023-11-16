@@ -33,7 +33,8 @@ class Agent():
 
         self.level = 0
         self.count = 1
-        self.around_fygar = False
+        self.around_enemy = False
+        self.drop_rock = False
 
     def update_state(self, state, current_state=STATE_IDLE):
         if 'map' in state:
@@ -79,10 +80,10 @@ class Agent():
                 #     return self.go_to(next_position)
 
                 if self.closest_enemy['name'] != "Fygar":
-                    self.around_fygar = False
+                    self.around_enemy = False
                     
 
-                if self.around_fygar:
+                if self.around_enemy:
                     if self.closest_enemy['dir'] == 1 and self.closest_enemy['pos'][0] - self.my_position[0] <= 2:
                         self.key = "a"
                         return self.key
@@ -92,9 +93,11 @@ class Agent():
                         return self.key
 
                     else:
-                        self.around_fygar = False
+                        self.around_enemy = False
                         return self.go_to([self.my_position[0], self.closest_enemy['pos'][1]])
                     
+                if self.rock_between(self.closest_enemy):
+                    self.around_enemy = True
 
                 if not self.same(self.closest_enemy):
                     next_position = self.go_behind(self.closest_enemy)
@@ -103,7 +106,7 @@ class Agent():
                         return next_position
                     
                 if self.fygar_our_way(self.closest_enemy):
-                    self.around_fygar = True
+                    self.around_enemy = True
                     if self.my_position[1] + 1 < len(self.map[0]):
                         self.key = "s"
                         return self.key
@@ -525,6 +528,28 @@ class Agent():
     def same(self, enemy):
         if enemy["pos"][0] == self.my_position[0] or enemy["pos"][1] == self.my_position[1]:
             return True
+        return False
+    
+    # function to see if there is a rock between digdug and the enemy
+    def rock_between(self, enemy):
+        if enemy["pos"][0] == self.my_position[0]:
+            if enemy["pos"][1] < self.my_position[1]:
+                for rock in self.state["rocks"]:
+                    if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] > enemy["pos"][1] and rock["pos"][1] < self.my_position[1]:
+                        return True
+            else:
+                for rock in self.state["rocks"]:
+                    if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] < enemy["pos"][1] and rock["pos"][1] > self.my_position[1]:
+                        return True
+        elif enemy["pos"][1] == self.my_position[1]:
+            if enemy["pos"][0] < self.my_position[0]:
+                for rock in self.state["rocks"]:
+                    if rock["pos"][1] == enemy["pos"][1] and rock["pos"][0] > enemy["pos"][0] and rock["pos"][0] < self.my_position[0]:
+                        return True
+            else:
+                for rock in self.state["rocks"]:
+                    if rock["pos"][1] == enemy["pos"][1] and rock["pos"][0] < enemy["pos"][0] and rock["pos"][0] > self.my_position[0]:
+                        return True
         return False
     
     
