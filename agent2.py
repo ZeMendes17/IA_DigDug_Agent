@@ -42,6 +42,7 @@ class Agent():
             self.size  = state['size']
 
         elif 'digdug' in state and state['enemies'] != []:
+            print(self.path)
             if self.level != self.count:
                 self.key = " "
                 return self.key
@@ -131,16 +132,16 @@ class Agent():
                     return self.key
 
                 possible_positions = []
-                if self.my_position[0]-1 >= 0 and self.map[self.my_position[0] - 1][self.my_position[1]] == 0:
+                if self.my_position[0] - 1 > 0 and self.map[self.my_position[0] - 1][self.my_position[1]] == 0:
                     possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
 
-                if self.my_position[0]+1 <= self.size[0] and self.map[self.my_position[0] + 1][self.my_position[1]] == 0:
+                if self.my_position[0] + 1 < self.size[0] and self.map[self.my_position[0] + 1][self.my_position[1]] == 0:
                     possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
 
-                if self.my_position[1]-1 >= 0 and self.map[self.my_position[0]][self.my_position[1] - 1] == 0:
+                if self.my_position[1] - 1 > 0 and self.map[self.my_position[0]][self.my_position[1] - 1] == 0:
                     possible_positions.append([self.my_position[0], self.my_position[1] - 1])
 
-                if self.my_position[1]+1 <= self.size[1] and self.map[self.my_position[0]][self.my_position[1] + 1] == 0:
+                if self.my_position[1] + 1 < self.size[1] and self.map[self.my_position[0]][self.my_position[1] + 1] == 0:
                     possible_positions.append([self.my_position[0], self.my_position[1] + 1])
 
                 # get what is the closest position to [0, 0]
@@ -182,7 +183,7 @@ class Agent():
                     entries = [entry for entry in entries if entry[0] not in self.offlimits]
                     self.entry = self.closest_entry(entries)
                     print(self.entry)
-                    print(rocks)
+                    # print(self.offlimits)
 
                     st = self.get_tree_search(self.entry[0], self.map)
                     # if st.search() == [self.my_position]:
@@ -407,6 +408,11 @@ class Agent():
                     up = position
                 elif position[1] > down[1]:
                     down = position
+
+            left = ([left[0] - 2, left[1]], [left[0] - 1, left[1]])
+            right = ([right[0] + 2, right[1]], [right[0] + 1, right[1]])
+            up = ([up[0], up[1] - 2], [up[0], up[1] - 1])
+            down = ([down[0], down[1] + 2], [down[0], down[1] + 1])
 
         return [x for x in [left, right, up, down] if x != None and x[0][0] >= 0 and x[0][0] < len(self.map) and x[0][1] >= 0 and x[0][1] < len(self.map[0])]
     
