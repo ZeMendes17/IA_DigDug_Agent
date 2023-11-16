@@ -99,6 +99,12 @@ class Agent():
                 if self.rock_between(self.closest_enemy):
                     print("rock between")
                     self.around_enemy = True
+                    if self.my_position[1] + 1 < len(self.map[0]):
+                        self.key = "s"
+                        return self.key
+                    else:
+                        self.key = "w"
+                        return self.key
 
                 if not self.same(self.closest_enemy):
                     next_position = self.go_behind(self.closest_enemy)
@@ -130,6 +136,14 @@ class Agent():
 
             # if pooka is traversing, go back
             # TEMPORARY
+            closest_enemy = state['enemies'][0]
+            for enemy in state['enemies']:
+                if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, closest_enemy['pos']):
+                    closest_enemy = enemy
+            if 'traverse' in closest_enemy:
+                self.key = self.go_to([0, 0])
+                return self.key
+
             # if self.is_pooka_traversing(state):
             #     if self.my_position == [0, 0]:
             #         self.key = " "
@@ -194,7 +208,11 @@ class Agent():
                     #     self.wait = True
                     #     self.key = " "
                     #     return self.key
+                    # print(st.search())
+                    print("BEFORE")
+                    print("AFTER")
                     self.path = st.search()[1:]
+                    print("AFTER2")
                     if self.path == []:
                         self.wait = True
                         self.key = " "
