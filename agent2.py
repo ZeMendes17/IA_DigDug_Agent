@@ -97,6 +97,7 @@ class Agent():
                         return self.go_to([self.my_position[0], self.closest_enemy['pos'][1]])
                     
                 if self.rock_between(self.closest_enemy):
+                    print("rock between")
                     self.around_enemy = True
 
                 if not self.same(self.closest_enemy):
@@ -129,32 +130,32 @@ class Agent():
 
             # if pooka is traversing, go back
             # TEMPORARY
-            if self.is_pooka_traversing(state):
-                if self.my_position == [0, 0]:
-                    self.key = " "
-                    return self.key
+            # if self.is_pooka_traversing(state):
+            #     if self.my_position == [0, 0]:
+            #         self.key = " "
+            #         return self.key
 
-                possible_positions = []
-                if self.my_position[0] - 1 > 0 and self.map[self.my_position[0] - 1][self.my_position[1]] == 0:
-                    possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
+            #     possible_positions = []
+            #     if self.my_position[0] - 1 > 0 and self.map[self.my_position[0] - 1][self.my_position[1]] == 0:
+            #         possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
 
-                if self.my_position[0] + 1 < self.size[0] and self.map[self.my_position[0] + 1][self.my_position[1]] == 0:
-                    possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
+            #     if self.my_position[0] + 1 < self.size[0] and self.map[self.my_position[0] + 1][self.my_position[1]] == 0:
+            #         possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
 
-                if self.my_position[1] - 1 > 0 and self.map[self.my_position[0]][self.my_position[1] - 1] == 0:
-                    possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+            #     if self.my_position[1] - 1 > 0 and self.map[self.my_position[0]][self.my_position[1] - 1] == 0:
+            #         possible_positions.append([self.my_position[0], self.my_position[1] - 1])
 
-                if self.my_position[1] + 1 < self.size[1] and self.map[self.my_position[0]][self.my_position[1] + 1] == 0:
-                    possible_positions.append([self.my_position[0], self.my_position[1] + 1])
+            #     if self.my_position[1] + 1 < self.size[1] and self.map[self.my_position[0]][self.my_position[1] + 1] == 0:
+            #         possible_positions.append([self.my_position[0], self.my_position[1] + 1])
 
-                # get what is the closest position to [0, 0]
-                closest_position = possible_positions[0]
-                for position in possible_positions:
-                    if self.distance(position, [0, 0]) < self.distance(closest_position, [0, 0]):
-                        closest_position = position
+            #     # get what is the closest position to [0, 0]
+            #     closest_position = possible_positions[0]
+            #     for position in possible_positions:
+            #         if self.distance(position, [0, 0]) < self.distance(closest_position, [0, 0]):
+            #             closest_position = position
 
-                self.key = self.go_to(closest_position)
-                return self.key
+            #     self.key = self.go_to(closest_position)
+            #     return self.key
             
             self.trace_back = []
 
@@ -305,6 +306,7 @@ class Agent():
     def get_tree_search(self, goal, map):
         domain = DigDug(self.offlimits, map, self.size)
         problem = SearchProblem(domain, self.my_position, goal)
+        print("returns tree search")
         return SearchTree(problem, 'greedy')
     
     # funtion to calculate the distance between two points
@@ -350,6 +352,8 @@ class Agent():
     def get_enemy_tunnels(self, enemies):
         tunnels = []
         for enemy in enemies:
+            if enemy["name"] == "Pooka" and 'traverse' in enemy:
+                continue
             tunnel = self.get_tunnel(enemy["pos"][0], enemy["pos"][1], self.map, [])
             if tunnel not in tunnels:
                 tunnels.append(tunnel)
@@ -532,8 +536,9 @@ class Agent():
     
     # function to see if there is a rock between digdug and the enemy
     def rock_between(self, enemy):
-        if enemy["pos"][0] == self.my_position[0]:
-            if enemy["pos"][1] < self.my_position[1]:
+        print("Entrou")
+        if enemy["pos"][0] == self.my_position[0]: # vertical
+            if enemy["pos"][1] < self.my_position[1]: # enemy is above
                 for rock in self.state["rocks"]:
                     if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] > enemy["pos"][1] and rock["pos"][1] < self.my_position[1]:
                         return True
@@ -541,8 +546,8 @@ class Agent():
                 for rock in self.state["rocks"]:
                     if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] < enemy["pos"][1] and rock["pos"][1] > self.my_position[1]:
                         return True
-        elif enemy["pos"][1] == self.my_position[1]:
-            if enemy["pos"][0] < self.my_position[0]:
+        elif enemy["pos"][1] == self.my_position[1]: # horizontal
+            if enemy["pos"][0] < self.my_position[0]: # enemy is to the left
                 for rock in self.state["rocks"]:
                     if rock["pos"][1] == enemy["pos"][1] and rock["pos"][0] > enemy["pos"][0] and rock["pos"][0] < self.my_position[0]:
                         return True
