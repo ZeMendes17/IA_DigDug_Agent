@@ -36,6 +36,8 @@ class Agent():
         self.level = 0
         self.count = 1
         self.around_enemy = False
+
+        self.rock = None
         self.drop_rock = False
 
     def update_state(self, state, current_state=STATE_IDLE):
@@ -65,6 +67,16 @@ class Agent():
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
             # print(in_my_tunnel)
             if in_my_tunnel != []:
+                if self.drop_rock and self.rock[0] == self.my_position[0]:
+                    self.drop_rock = False
+                    self.rock = None
+                    if self.my_position[0] - 1 > 0:
+                        self.key = "a"
+                        return self.key
+                    else:
+                        self.key = "d"
+                        return self.key
+                    
                 # get the closest enemy
                 self.closest_enemy = in_my_tunnel[0]
                 for enemy in in_my_tunnel:
@@ -226,6 +238,18 @@ class Agent():
             self.trace_back = []
 
             if self.path == []:
+                if self.drop_rock:
+                    # see if the rock is above an enemy
+                    if self.rock_above_enemy() == None:
+                        self.drop_rock = False
+                        self.rock = None
+                        self.key = " "
+                        return self.key
+                    
+                    self.wait = False
+                    self.key = self.go_to([self.my_position[0], self.my_position[1] + 1])
+                    return self.key
+
                 if self.wait:
                     self.key = " "
                     
@@ -237,6 +261,21 @@ class Agent():
 
 
                 else:
+                    if self.rock_above_enemy() != None:
+                        print("ROCK ABOVE ENEMY")
+                        self.rock = self.rock_above_enemy()
+                        # digdug goes to the position above the tunnel entry
+                        position = [self.rock[0], self.rock[1] + 1]
+                        while self.map[position[0]][position[1]] == 0:
+                            position[1] += 1
+
+                        st = self.get_tree_search(position, self.map)
+                        self.path = st.search()[1:]
+                        self.drop_rock = True
+                        self.key = self.go_to(self.path[0])
+                        self.path = self.path[1:]
+                        return self.key
+
                     enemy_tunnels = self.get_enemy_tunnels(state['enemies'])
                     # print(state['enemies'])
                     # print(self.print_map(self.map))
@@ -249,8 +288,10 @@ class Agent():
                     below_rocks = [[rock[0], rock[1] + 1] for rock in rocks]
                     self.offlimits += rocks
                     self.offlimits += below_rocks
+                        
                     # if an offlimit is one of the entries, remove it
                     entries = [entry for entry in entries if entry[0] not in self.offlimits]
+
                     self.entry = self.closest_entry(entries)
                     print(self.entry)
                     # print(self.offlimits)
@@ -262,9 +303,8 @@ class Agent():
                     #     return self.key
                     # print(st.search())
                     print("BEFORE")
-                    print("AFTER")
                     self.path = st.search()[1:]
-                    print("AFTER2")
+                    print("AFTER")
                     if self.path == []:
                         self.wait = True
                         self.key = " "
@@ -626,6 +666,19 @@ class Agent():
                     if rock["pos"][1] == enemy["pos"][1] and rock["pos"][0] < enemy["pos"][0] and rock["pos"][0] > self.my_position[0]:
                         return True
         return False
+    
+    # function to see if there is a rock above an enemy in a vertical tunnel
+    def rock_above_enemy(self):
+        for enemy in self.state['enemies']:
+            # see if the enemy is in a vertical tunnel
+            if (enemy["pos"][1] - 1 > 0 and self.map[enemy["pos"][0]][enemy["pos"][1] - 1] == 0) or (enemy["pos"][1] + 1 < self.size[1] and self.map[enemy["pos"][0]][enemy["pos"][1] + 1] == 0):
+                for rock in self.state["rocks"]:
+                    if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] < enemy["pos"][1]:
+                        return rock["pos"]
+        return None
+
+
+
     
     
     def print_map(self, map):
