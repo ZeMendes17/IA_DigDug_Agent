@@ -322,6 +322,10 @@ class Agent():
                     # if an offlimit is one of the entries, remove it
                     entries = [entry for entry in entries if entry[0] not in self.offlimits]
 
+                    if entries == []:
+                        entries = [border for tunnel in enemy_tunnels for border in self.get_tunnel_borders(tunnel)]
+                        entries = [entry for entry in entries if entry not in rocks and entry not in below_rocks]
+
                     self.entry = self.closest_entry(entries)
                     # print(self.offlimits)
 
