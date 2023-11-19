@@ -382,6 +382,7 @@ class Agent():
             self.path = []
             self.wait = False
             self.key = " "
+            self.lastPositions = []
         return self.key
     
     # function to know if there is only tunnel between digdug and the enemy
