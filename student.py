@@ -7,7 +7,7 @@ import os
 # Next 4 lines are not needed for AI agents, please remove them from your code!
 import websockets
 
-from agent2 import Agent
+from agent import Agent
 import time
 
 

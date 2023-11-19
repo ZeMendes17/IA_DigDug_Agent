@@ -142,7 +142,6 @@ class SearchTree:
         count = 0
         while self.open_nodes != []:
             count += 1
-            print(count)
             if count % 1000 == 0: # tá a demorar muito, para encontrar dont know why
                 break
             node = self.open_nodes.pop(0)
