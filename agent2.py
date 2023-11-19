@@ -47,7 +47,7 @@ class Agent():
             self.size  = state['size']
 
         elif 'digdug' in state and state['enemies'] != []:
-            print(self.path)
+            # print(self.path)
             if self.level != self.count:
                 self.key = " "
                 return self.key
@@ -66,7 +66,7 @@ class Agent():
             # get enemies in my tunnel
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
             # print(in_my_tunnel)
-            if in_my_tunnel != []:
+            if in_my_tunnel != []: # tem inimigo no meu tunel
                 if self.drop_rock and self.rock[0] == self.my_position[0]:
                     self.drop_rock = False
                     self.rock = None
@@ -83,16 +83,64 @@ class Agent():
                     if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
                         self.closest_enemy = enemy
 
-                # if self.path_behind_enemy != []:
-                #     next_position = self.path_behind_enemy[0]
-                #     self.path_behind_enemy = self.path_behind_enemy[1:]
-                #     return self.go_to(next_position)
+                # if there is an enemy too close, run away
+                enemy_too_close = [enemy for enemy in in_my_tunnel if self.distance(self.my_position, enemy['pos']) <= 1]
+                pos_too_close = [enemy['pos'] for enemy in enemy_too_close]
 
-                # if self.fygar_our_way(state['enemies']):
-                #     self.go_behind(self.closest_enemy)
-                #     next_position = self.path_behind_enemy[0]
-                #     self.path_behind_enemy = self.path_behind_enemy[1:]
-                #     return self.go_to(next_position)
+                if enemy_too_close != []:
+                    possible_positions = []
+
+                    up_flag = False
+                    down_flag = False
+                    left_flag = False
+                    right_flag = False
+
+                    for enemy in enemy_too_close:
+                        # see if the enemy is looking at us
+                        if enemy['dir'] == 0 and enemy['pos'][0] == self.my_position[0] and enemy['pos'][1] > self.my_position[1]:
+                            up_flag = True
+                        elif enemy['dir'] == 2 and enemy['pos'][0] == self.my_position[0] and enemy['pos'][1] < self.my_position[1]:
+                            down_flag = True
+                        elif enemy['dir'] == 1 and enemy['pos'][1] == self.my_position[1] and enemy['pos'][0] < self.my_position[0]:
+                            right_flag = True
+                        elif enemy['dir'] == 3 and enemy['pos'][1] == self.my_position[1] and enemy['pos'][0] > self.my_position[0]:
+                            left_flag = True
+
+                    if (not up_flag) and self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+                    if (not down_flag) and self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0], self.my_position[1] + 1])
+                    if (not left_flag) and self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
+                    if (not right_flag) and self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
+
+                    if possible_positions != []:
+                        preferred = [x for x in possible_positions if self.map[x[0]][x[1]] == 0]
+                        if preferred != []:
+                            self.key = self.go_to(preferred[0])
+                        else:
+                            self.key = self.go_to(possible_positions[0])
+                        return self.key
+
+
+                    if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
+                    if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
+                    if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+                    if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0], self.my_position[1] + 1])
+
+                    if possible_positions != []:
+                        preferred = [x for x in possible_positions if self.map[x[0]][x[1]] == 0]
+                        if preferred != []:
+                            self.key = self.go_to(preferred[0])
+                        else:
+                            self.key = self.go_to(possible_positions[0])
+                        return self.key
+
 
                 if self.closest_enemy['name'] != "Fygar":
                     self.around_enemy = False
@@ -111,21 +159,13 @@ class Agent():
                         self.around_enemy = False
                         return self.go_to([self.my_position[0], self.closest_enemy['pos'][1]])
                     
-                if self.rock_between(self.closest_enemy):
-                    print("rock between")
-                    self.around_enemy = True
-                    if self.my_position[1] + 1 < len(self.map[0]):
-                        self.key = "s"
-                        return self.key
-                    else:
-                        self.key = "w"
-                        return self.key
 
                 if not self.same(self.closest_enemy):
                     next_position = self.go_behind(self.closest_enemy)
                     if next_position != None:
                         self.key = next_position
                         return next_position
+
                     
                 if self.fygar_our_way(self.closest_enemy):
                     self.around_enemy = True
@@ -144,6 +184,7 @@ class Agent():
                     if self.is_facing_enemy():
                         # and there is no walls between us shoot
                         #if self.only_tunnel_between() and not self.wait:
+                        print("SHOOOOOOOT")
                         self.key = "A"
                         
                         # if there is walls lets keep going towards the enemy
@@ -205,35 +246,16 @@ class Agent():
                 if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, closest_enemy['pos']):
                     closest_enemy = enemy
             if 'traverse' in closest_enemy:
+                st = self.get_tree_search([0, 0], self.map)
+                position = st.search()
+                if position != None:
+                    if self.my_position == [0, 0]:
+                        self.key = " "
+                        return self.key
+                    self.key = self.go_to(position[1])
+                    return self.key
                 self.key = self.go_to([0, 0])
                 return self.key
-
-            # if self.is_pooka_traversing(state):
-            #     if self.my_position == [0, 0]:
-            #         self.key = " "
-            #         return self.key
-
-            #     possible_positions = []
-            #     if self.my_position[0] - 1 > 0 and self.map[self.my_position[0] - 1][self.my_position[1]] == 0:
-            #         possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-
-            #     if self.my_position[0] + 1 < self.size[0] and self.map[self.my_position[0] + 1][self.my_position[1]] == 0:
-            #         possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
-
-            #     if self.my_position[1] - 1 > 0 and self.map[self.my_position[0]][self.my_position[1] - 1] == 0:
-            #         possible_positions.append([self.my_position[0], self.my_position[1] - 1])
-
-            #     if self.my_position[1] + 1 < self.size[1] and self.map[self.my_position[0]][self.my_position[1] + 1] == 0:
-            #         possible_positions.append([self.my_position[0], self.my_position[1] + 1])
-
-            #     # get what is the closest position to [0, 0]
-            #     closest_position = possible_positions[0]
-            #     for position in possible_positions:
-            #         if self.distance(position, [0, 0]) < self.distance(closest_position, [0, 0]):
-            #             closest_position = position
-
-            #     self.key = self.go_to(closest_position)
-            #     return self.key
             
             self.trace_back = []
 
@@ -262,13 +284,9 @@ class Agent():
 
                 else:
                     if self.rock_above_enemy() != None:
-                        print("ROCK ABOVE ENEMY")
                         self.rock = self.rock_above_enemy()
                         # digdug goes to the position above the tunnel entry
                         position = [self.rock[0], self.rock[1] + 1]
-                        while self.map[position[0]][position[1]] == 0:
-                            position[1] += 1
-
                         st = self.get_tree_search(position, self.map)
                         self.path = st.search()[1:]
                         self.drop_rock = True
@@ -293,7 +311,6 @@ class Agent():
                     entries = [entry for entry in entries if entry[0] not in self.offlimits]
 
                     self.entry = self.closest_entry(entries)
-                    print(self.entry)
                     # print(self.offlimits)
 
                     st = self.get_tree_search(self.entry[0], self.map)
@@ -305,6 +322,7 @@ class Agent():
                     print("BEFORE")
                     self.path = st.search()[1:]
                     print("AFTER")
+                    print(self.path)
                     if self.path == []:
                         self.wait = True
                         self.key = " "
@@ -364,14 +382,14 @@ class Agent():
         agent_dir = self.get_direction()
         
         if (agent_dir == 0 and self.closest_enemy['pos'][0] == self.my_position[0] and self.closest_enemy['pos'][1] < self.my_position[1]): # up
-            print("facing up")
+            # print("facing up")
             return True
             
         elif (agent_dir == 1 and self.closest_enemy['pos'][1] == self.my_position[1] and self.closest_enemy['pos'][0] > self.my_position[0]):
             return True
         
         elif (agent_dir == 2 and self.closest_enemy['pos'][0] == self.my_position[0] and self.closest_enemy['pos'][1] > self.my_position[1]):
-            print("facing down")
+            # print("facing down")
             return True
         
         elif (agent_dir == 3 and self.closest_enemy['pos'][1] == self.my_position[1] and self.closest_enemy['pos'][0] < self.my_position[0]):
@@ -412,7 +430,6 @@ class Agent():
     def get_tree_search(self, goal, map):
         domain = DigDug(self.offlimits, map, self.size)
         problem = SearchProblem(domain, self.my_position, goal)
-        print("returns tree search")
         return SearchTree(problem, 'greedy')
     
     # funtion to calculate the distance between two points
@@ -430,16 +447,16 @@ class Agent():
     
     # funtion to go to a given position
     def go_to(self, position):
-        if self.my_position[0] < position[0]:
+        if self.my_position[0] < position[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']]:
             key = "d"
             self.last_dir = 1
-        elif self.my_position[0] > position[0]:
+        elif self.my_position[0] > position[0] and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']]:
             key = "a"
             self.last_dir = 3
-        elif self.my_position[1] < position[1]:
+        elif self.my_position[1] < position[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']]:
             key = "s"
             self.last_dir = 2
-        elif self.my_position[1] > position[1]:
+        elif self.my_position[1] > position[1] and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']]:
             key = "w"
             self.last_dir = 0
         else:
@@ -569,6 +586,8 @@ class Agent():
             for enemy in self.state["enemies"]:
                 if enemy["pos"] in line and enemy["dir"] == 1:
                     return False
+                if enemy["pos"] in line and enemy["pos"] == [position[0] - 1, position[1]]:
+                    return False
                 
         elif dir == "w":
             column = []
@@ -580,6 +599,8 @@ class Agent():
 
             for enemy in self.state["enemies"]:
                 if enemy["pos"] in column and enemy["dir"] == 2:
+                    return False
+                if enemy["pos"] in column and enemy["pos"] == [position[0], position[1] - 1]:
                     return False
                 
         elif dir == "d":
@@ -593,6 +614,8 @@ class Agent():
             for enemy in self.state["enemies"]:
                 if enemy["pos"] in line and enemy["dir"] == 3:
                     return False
+                if enemy["pos"] in line and enemy["pos"] == [position[0] + 1, position[1]]:
+                    return False
                 
         elif dir == "s":
             column = []
@@ -605,13 +628,15 @@ class Agent():
             for enemy in self.state["enemies"]:
                 if enemy["pos"] in column and enemy["dir"] == 0:
                     return False
+                if enemy["pos"] in column and enemy["pos"] == [position[0], position[1] + 1]:
+                    return False
 
         return True
     
     # function to go behind an enemy
     def go_behind(self, enemy):
         if enemy["dir"] == 0 or enemy["dir"] == 2:
-            if abs(self.my_position[1] - enemy["pos"][1]) <= 3: # has to go further
+            if abs(self.my_position[1] - enemy["pos"][1]) <= 2: # has to go further
                 if self.my_position[1] < enemy["pos"][1]:
                     return self.go_to([self.my_position[0], self.my_position[1] - 1])
                 else:
@@ -628,7 +653,6 @@ class Agent():
             else:
                 return self.go_to([self.my_position[0], enemy["pos"][1]])
             
-
     # function to see if fygar horizontal and facing digdug
     def fygar_our_way(self, enemy):
         if enemy["name"] == "Fygar" and enemy["pos"][1] == self.my_position[1] and self.distance(self.my_position, enemy["pos"]) <= 4:
@@ -646,7 +670,6 @@ class Agent():
     
     # function to see if there is a rock between digdug and the enemy
     def rock_between(self, enemy):
-        print("Entrou")
         if enemy["pos"][0] == self.my_position[0]: # vertical
             if enemy["pos"][1] < self.my_position[1]: # enemy is above
                 for rock in self.state["rocks"]:
@@ -676,11 +699,13 @@ class Agent():
                     if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] < enemy["pos"][1]:
                         return rock["pos"]
         return None
-
-
-
     
-    
+    # function that given a postion, returns a list of all the positions + in the map
+    def cross_map(self, position):
+        horizzontal = [[x, position[1]] for x in range(0, self.size[0] - 1)]
+        vertical = [[position[0], y] for y in range(0, self.size[1] - 1)]
+        return horizzontal + vertical
+
     def print_map(self, map):
         for i in range(len(map[0])):
             for j in range(len(map)):
