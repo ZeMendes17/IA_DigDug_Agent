@@ -139,7 +139,12 @@ class SearchTree:
 
     # procurar a solucao
     def search(self, limit=None):
+        count = 0
         while self.open_nodes != []:
+            count += 1
+            print(count)
+            if count % 1000 == 0: # tá a demorar muito, para encontrar dont know why
+                break
             node = self.open_nodes.pop(0)
             if self.problem.goal_test(node.state):
                 self.solution = node

@@ -179,6 +179,13 @@ class Agent():
                     
                 self.go_to_position = self.my_position
                 # if the enemy is close enough, face it and attack
+
+                if self.distance(self.my_position, self.closest_enemy['pos']) <= 4 and self.same(self.closest_enemy) and self.is_facing_enemy() and self.enemy_our_way(self.closest_enemy):
+                    # shoots if the enemy is in our way
+
+                    self.key = "A"
+                    return self.key
+
                 if (self.distance(self.my_position, self.closest_enemy['pos']) <= 3):
                     # If we are facing the enemy
                     if self.is_facing_enemy():
@@ -288,7 +295,12 @@ class Agent():
                         # digdug goes to the position above the tunnel entry
                         position = [self.rock[0], self.rock[1] + 1]
                         st = self.get_tree_search(position, self.map)
-                        self.path = st.search()[1:]
+                        self.path = st.search()
+                        if self.path == None:
+                            self.path = []
+                            self.key = self.go_to(position)
+                            return self.key
+                        self.path = self.path[1:]
                         self.drop_rock = True
                         self.key = self.go_to(self.path[0])
                         self.path = self.path[1:]
@@ -314,14 +326,12 @@ class Agent():
                     # print(self.offlimits)
 
                     st = self.get_tree_search(self.entry[0], self.map)
-                    # if st.search() == [self.my_position]:
-                    #     self.wait = True
-                    #     self.key = " "
-                    #     return self.key
-                    # print(st.search())
-                    print("BEFORE")
-                    self.path = st.search()[1:]
-                    print("AFTER")
+                    self.path = st.search()
+                    if self.path == None:
+                        self.path = []
+                        self.key = self.go_to(self.entry[0])
+                        return self.key
+                    self.path = self.path[1:]
                     print(self.path)
                     if self.path == []:
                         self.wait = True
@@ -700,11 +710,17 @@ class Agent():
                         return rock["pos"]
         return None
     
-    # function that given a postion, returns a list of all the positions + in the map
-    def cross_map(self, position):
-        horizzontal = [[x, position[1]] for x in range(0, self.size[0] - 1)]
-        vertical = [[position[0], y] for y in range(0, self.size[1] - 1)]
-        return horizzontal + vertical
+    # function to see if enemy is looking at digdug
+    def enemy_our_way(self, enemy):
+        if enemy["dir"] == 0 and enemy["pos"][0] == self.my_position[0] and enemy["pos"][1] > self.my_position[1]:
+            return True
+        elif enemy["dir"] == 2 and enemy["pos"][0] == self.my_position[0] and enemy["pos"][1] < self.my_position[1]:
+            return True
+        elif enemy["dir"] == 1 and enemy["pos"][1] == self.my_position[1] and enemy["pos"][0] < self.my_position[0]:
+            return True
+        elif enemy["dir"] == 3 and enemy["pos"][1] == self.my_position[1] and enemy["pos"][0] > self.my_position[0]:
+            return True
+        return False
 
     def print_map(self, map):
         for i in range(len(map[0])):
