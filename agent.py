@@ -55,64 +55,6 @@ class Agent():
             self.state = state
             self.my_position = state['digdug']
 
-            # if there is an enemy too close, run away
-            enemy_too_close = [enemy for enemy in self.state['enemies'] if self.distance(self.my_position, enemy['pos']) <= 1]
-            pos_too_close = [enemy['pos'] for enemy in enemy_too_close]
-
-            if enemy_too_close != []:
-                possible_positions = []
-
-                up_flag = False
-                down_flag = False
-                left_flag = False
-                right_flag = False
-
-                for enemy in enemy_too_close:
-                    # see if the enemy is looking at us
-                    if enemy['dir'] == 0 and enemy['pos'][0] == self.my_position[0] and enemy['pos'][1] > self.my_position[1]:
-                        up_flag = True
-                    elif enemy['dir'] == 2 and enemy['pos'][0] == self.my_position[0] and enemy['pos'][1] < self.my_position[1]:
-                        down_flag = True
-                    elif enemy['dir'] == 1 and enemy['pos'][1] == self.my_position[1] and enemy['pos'][0] < self.my_position[0]:
-                        right_flag = True
-                    elif enemy['dir'] == 3 and enemy['pos'][1] == self.my_position[1] and enemy['pos'][0] > self.my_position[0]:
-                        left_flag = True
-
-                if (not up_flag) and self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
-                    possible_positions.append([self.my_position[0], self.my_position[1] - 1])
-                if (not down_flag) and self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
-                    possible_positions.append([self.my_position[0], self.my_position[1] + 1])
-                if (not left_flag) and self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
-                    possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-                if (not right_flag) and self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
-                    possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
-
-                if possible_positions != []:
-                    preferred = [x for x in possible_positions if self.map[x[0]][x[1]] == 0]
-                    if preferred != []:
-                        self.key = self.go_to(preferred[0])
-                    else:
-                        self.key = self.go_to(possible_positions[0])
-                    return self.key
-
-
-                if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
-                    possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-                if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
-                    possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
-                if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
-                    possible_positions.append([self.my_position[0], self.my_position[1] - 1])
-                if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
-                    possible_positions.append([self.my_position[0], self.my_position[1] + 1])
-
-                if possible_positions != []:
-                    preferred = [x for x in possible_positions if self.map[x[0]][x[1]] == 0]
-                    if preferred != []:
-                        self.key = self.go_to(preferred[0])
-                    else:
-                        self.key = self.go_to(possible_positions[0])
-                    return self.key
-
             # update the map with the new position
             self.map[self.my_position[0]][self.my_position[1]] = 0
             # get my updated tunnel
@@ -140,6 +82,64 @@ class Agent():
                 for enemy in in_my_tunnel:
                     if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
                         self.closest_enemy = enemy
+
+                # if there is an enemy too close, run away
+                enemy_too_close = [enemy for enemy in in_my_tunnel if self.distance(self.my_position, enemy['pos']) <= 1]
+                pos_too_close = [enemy['pos'] for enemy in enemy_too_close]
+
+                if enemy_too_close != []:
+                    possible_positions = []
+
+                    up_flag = False
+                    down_flag = False
+                    left_flag = False
+                    right_flag = False
+
+                    for enemy in enemy_too_close:
+                        # see if the enemy is looking at us
+                        if enemy['dir'] == 0 and enemy['pos'][0] == self.my_position[0] and enemy['pos'][1] > self.my_position[1]:
+                            up_flag = True
+                        elif enemy['dir'] == 2 and enemy['pos'][0] == self.my_position[0] and enemy['pos'][1] < self.my_position[1]:
+                            down_flag = True
+                        elif enemy['dir'] == 1 and enemy['pos'][1] == self.my_position[1] and enemy['pos'][0] < self.my_position[0]:
+                            right_flag = True
+                        elif enemy['dir'] == 3 and enemy['pos'][1] == self.my_position[1] and enemy['pos'][0] > self.my_position[0]:
+                            left_flag = True
+
+                    if (not up_flag) and self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+                    if (not down_flag) and self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0], self.my_position[1] + 1])
+                    if (not left_flag) and self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
+                    if (not right_flag) and self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
+
+                    if possible_positions != []:
+                        preferred = [x for x in possible_positions if self.map[x[0]][x[1]] == 0]
+                        if preferred != []:
+                            self.key = self.go_to(preferred[0])
+                        else:
+                            self.key = self.go_to(possible_positions[0])
+                        return self.key
+
+
+                    if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
+                    if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
+                    if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+                    if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                        possible_positions.append([self.my_position[0], self.my_position[1] + 1])
+
+                    if possible_positions != []:
+                        preferred = [x for x in possible_positions if self.map[x[0]][x[1]] == 0]
+                        if preferred != []:
+                            self.key = self.go_to(preferred[0])
+                        else:
+                            self.key = self.go_to(possible_positions[0])
+                        return self.key
 
 
                 if self.closest_enemy['name'] != "Fygar":
@@ -268,6 +268,20 @@ class Agent():
 
             if self.path == []:
                 if self.drop_rock:
+                    if self.my_position != [self.rock[0], self.rock[1] + 1]:
+                        position = [self.rock[0], self.rock[1] + 1]
+                        st = self.get_tree_search(position, self.map)
+                        self.path = st.search()
+                        if self.path == None:
+                            self.path = []
+                            self.key = self.go_to(position)
+                            return self.key
+                        self.path = self.path[1:]
+                        self.drop_rock = True
+                        self.key = self.go_to(self.path[0])
+                        self.path = self.path[1:]
+                        return self.key
+
                     # see if the rock is above an enemy
                     if self.rock_above_enemy() == None:
                         self.drop_rock = False
