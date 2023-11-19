@@ -63,6 +63,8 @@ class Agent():
             ## if you want to see the map
             # print(self.print_enemy_tunnels(self.get_enemy_tunnels(state['enemies'])))
 
+
+
             # get enemies in my tunnel
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
             # print(in_my_tunnel)
@@ -140,6 +142,7 @@ class Agent():
                         else:
                             self.key = self.go_to(possible_positions[0])
                         return self.key
+                    
 
 
                 if self.closest_enemy['name'] != "Fygar":
@@ -176,7 +179,8 @@ class Agent():
                         self.key = "w"
                         return self.key
 
-                    
+                                            
+
                 self.go_to_position = self.my_position
                 # if the enemy is close enough, face it and attack
 
@@ -239,8 +243,7 @@ class Agent():
                     return self.key                  
 
                     
-                    
-
+                        
                 else:
                     self.key = self.go_to(self.closest_enemy['pos'])
                     return self.key
@@ -301,6 +304,105 @@ class Agent():
                         self.key = self.go_to(self.entry[1])
                     
                     return self.key
+                
+                #
+                #
+                # GO AROUND THE ROCK
+                enemies = state['enemies']
+                self.closest_enemy = enemies[0]
+                for enemy in enemies:
+                    if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
+                        self.closest_enemy = enemy
+
+                go_to_temp = self.go_to(self.closest_enemy['pos'])
+                rocks_in_way = False
+                rocks = [rock['pos'] for rock in state['rocks']]
+
+                if go_to_temp == "w":
+                    if [self.my_position[0], self.my_position[1] - 1] in rocks:
+                        rocks_in_way = True
+
+                if go_to_temp == "s":
+                    if [self.my_position[0], self.my_position[1] + 1] in rocks:
+                        rocks_in_way = True
+
+                if go_to_temp == "a":
+                    if [self.my_position[0] - 1, self.my_position[1]] in rocks:
+                        rocks_in_way = True
+
+                if go_to_temp == "d":
+                    if [self.my_position[0] + 1, self.my_position[1]] in rocks:
+                        rocks_in_way = True
+
+                print("ROCK IN WAY : " + str(rocks_in_way))
+
+                if rocks_in_way:
+                    print("ROCK IN WAY")
+                    print(rocks)
+                    # see if there is a rock in our way
+                    # going up
+                    if go_to_temp == "w":
+                            # check if we can go right or left
+                            if self.my_position[0] + 1 < len(self.map) and self.map[self.my_position[0] + 1][self.my_position[1]] == 0:
+                                self.key = "d"
+                                return self.key
+                            
+                            elif self.my_position[0] - 1 >= 0 and self.map[self.my_position[0] - 1][self.my_position[1]] == 0:
+                                self.key = "a"
+                                return self.key
+
+                            else:
+                                self.key = "s"
+                                return self.key
+                            
+                    # going down
+                    elif go_to_temp == "s":
+                            # check if we can go right or left
+                            if self.my_position[0] + 1 < len(self.map) and self.map[self.my_position[0] + 1][self.my_position[1]] == 0:
+                                self.key = "d"
+                                return self.key
+                            
+                            elif self.my_position[0] - 1 >= 0 and self.map[self.my_position[0] - 1][self.my_position[1]] == 0:
+                                self.key = "a"
+                                return self.key
+
+                            else:
+                                self.key = "w"
+                                return self.key
+                            
+                    # going left
+                    elif go_to_temp == "a":
+                            # check if we can go up or down (IF WE CAN UP)
+                            if self.my_position[1] - 1 >= 0 and self.map[self.my_position[0]][self.my_position[1] - 1] == 0:
+                                self.key = "w"
+                                return self.key
+                            
+                            
+                            elif self.my_position[1] + 1 < len(self.map[0]) and self.map[self.my_position[0]][self.my_position[1] + 1] == 0:
+                                self.key = "s"
+                                return self.key
+                            
+
+                            else:
+                                self.key = "d"
+                                return self.key
+                            
+                    # going right
+                    elif go_to_temp == "d":
+                            # check if we can go up or down (IF WE CAN UP)
+                            if self.my_position[1] - 1 >= 0 and self.map[self.my_position[0]][self.my_position[1] - 1] == 0:
+                                self.key = "w"
+                                return self.key
+                            
+                            
+                            elif self.my_position[1] + 1 < len(self.map[0]) and self.map[self.my_position[0]][self.my_position[1] + 1] == 0:
+                                self.key = "s"
+                                return self.key
+                            
+
+                            else:
+                                self.key = "a"
+                                return self.key
 
 
                 else:
