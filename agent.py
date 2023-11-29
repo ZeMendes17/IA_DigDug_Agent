@@ -493,34 +493,36 @@ class Agent():
             key = "w"
             self.last_dir = 0
         else:
-            # probably a rock, we need to go around
-            rock_positions = [rock['pos'] for rock in self.state['rocks']]
-            possible_positions = []
-            if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in rock_positions:
-                possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
-            if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in rock_positions:
-                possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-            if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in rock_positions:
-                possible_positions.append([self.my_position[0], self.my_position[1] + 1])
-            if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in rock_positions:
-                possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+            # # probably a rock, we need to go around
+            # rock_positions = [rock['pos'] for rock in self.state['rocks']]
+            # possible_positions = []
+            # if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in rock_positions:
+            #     possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
+            # if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in rock_positions:
+            #     possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
+            # if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in rock_positions:
+            #     possible_positions.append([self.my_position[0], self.my_position[1] + 1])
+            # if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in rock_positions:
+            #     possible_positions.append([self.my_position[0], self.my_position[1] - 1])
 
-            if possible_positions == []:
-                key = " "
-                return key
+            # if possible_positions == []:
+            #     key = " "
+            #     return key
             
-            possible_positions = [pos for pos in possible_positions if pos not in self.lastPositions]
-            if possible_positions == []:
-                self.lastPositions = []
-                possible_positions = []
-                if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in rock_positions:
-                    possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
-                if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in rock_positions:
-                    possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-                if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in rock_positions:
-                    possible_positions.append([self.my_position[0], self.my_position[1] + 1])
-                if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in rock_positions:
-                    possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+            # possible_positions = [pos for pos in possible_positions if pos not in self.lastPositions]
+            # if possible_positions == []:
+            #     self.lastPositions = []
+            #     possible_positions = []
+            #     if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in rock_positions:
+            #         possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
+            #     if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in rock_positions:
+            #         possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
+            #     if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in rock_positions:
+            #         possible_positions.append([self.my_position[0], self.my_position[1] + 1])
+            #     if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in rock_positions:
+            #         possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+            self.key = " "
+            return self.key
 
             
             # get the closest position to the goal
