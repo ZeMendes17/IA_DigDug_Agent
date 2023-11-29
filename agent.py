@@ -41,6 +41,7 @@ class Agent():
         self.drop_rock = False
 
         self.lastPositions = []
+        self.no_go = []
 
     def update_state(self, state, current_state=STATE_IDLE):
         if 'map' in state:
@@ -64,6 +65,22 @@ class Agent():
 
             ## if you want to see the map
             # print(self.print_enemy_tunnels(self.get_enemy_tunnels(state['enemies'])))
+
+            pookas_travesing = [enemy for enemy in state['enemies'] if enemy['name'] == "Pooka" and 'traverse' in enemy]
+            self.no_go = []
+
+            if pookas_travesing != []:
+                # if they are 1 square away, run away
+                for enemy in pookas_travesing:
+                    if self.distance(self.my_position, enemy['pos']) <= 1:
+                        if enemy['dir'] == 0:
+                            self.no_go.append([self.my_position[0], self.my_position[1] - 1])
+                        elif enemy['dir'] == 1:
+                            self.no_go.append([self.my_position[0] + 1, self.my_position[1]])
+                        elif enemy['dir'] == 2:
+                            self.no_go.append([self.my_position[0], self.my_position[1] + 1])
+                        elif enemy['dir'] == 3:
+                            self.no_go.append([self.my_position[0] - 1, self.my_position[1]])  
 
 
 
@@ -89,6 +106,7 @@ class Agent():
 
                 # if there is an enemy too close, run away
                 enemy_too_close = [enemy for enemy in in_my_tunnel if self.distance(self.my_position, enemy['pos']) <= 1]
+                fygar_too_close = [enemy for enemy in in_my_tunnel if self.distance(self.my_position, enemy['pos']) <= 3 and enemy['name'] == "Fygar"]
                 pos_too_close = [enemy['pos'] for enemy in enemy_too_close]
 
                 if enemy_too_close != []:
@@ -110,13 +128,25 @@ class Agent():
                         elif enemy['dir'] == 3 and enemy['pos'][1] == self.my_position[1] and enemy['pos'][0] > self.my_position[0]:
                             left_flag = True
 
-                    if (not up_flag) and self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                    for enemy in fygar_too_close:
+                        # get the 3 positions in front of the fygar -> digdug can't go there
+                        if enemy['dir'] == 1:
+                            pos_too_close.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+                            pos_too_close.append([enemy['pos'][0] + 2, enemy['pos'][1]])
+                            pos_too_close.append([enemy['pos'][0] + 3, enemy['pos'][1]])
+
+                        elif enemy['dir'] == 3:
+                            pos_too_close.append([enemy['pos'][0] - 1, enemy['pos'][1]])
+                            pos_too_close.append([enemy['pos'][0] - 2, enemy['pos'][1]])
+                            pos_too_close.append([enemy['pos'][0] - 3, enemy['pos'][1]])
+
+                    if (not up_flag) and self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close and [self.my_position[0], self.my_position[1] - 1] not in self.no_go:
                         possible_positions.append([self.my_position[0], self.my_position[1] - 1])
-                    if (not down_flag) and self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                    if (not down_flag) and self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close and [self.my_position[0], self.my_position[1] + 1] not in self.no_go:
                         possible_positions.append([self.my_position[0], self.my_position[1] + 1])
-                    if (not left_flag) and self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                    if (not left_flag) and self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close and [self.my_position[0] - 1, self.my_position[1]] not in self.no_go:
                         possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-                    if (not right_flag) and self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                    if (not right_flag) and self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close and [self.my_position[0] + 1, self.my_position[1]] not in self.no_go:
                         possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
 
                     if possible_positions != []:
@@ -128,13 +158,13 @@ class Agent():
                         return self.key
 
 
-                    if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                    if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close and [self.my_position[0] - 1, self.my_position[1]] not in self.no_go:
                         possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-                    if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                    if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close and [self.my_position[0] + 1, self.my_position[1]] not in self.no_go:
                         possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
-                    if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                    if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close and [self.my_position[0], self.my_position[1] - 1] not in self.no_go:
                         possible_positions.append([self.my_position[0], self.my_position[1] - 1])
-                    if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close:
+                    if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] + pos_too_close and [self.my_position[0], self.my_position[1] + 1] not in self.no_go:
                         possible_positions.append([self.my_position[0], self.my_position[1] + 1])
 
                     if possible_positions != []:
@@ -197,7 +227,6 @@ class Agent():
                     if self.is_facing_enemy():
                         # and there is no walls between us shoot
                         #if self.only_tunnel_between() and not self.wait:
-                        print("SHOOOOOOOT")
                         self.key = "A"
                         
                         # if there is walls lets keep going towards the enemy
@@ -273,6 +302,7 @@ class Agent():
 
             if self.path == []:
                 if self.drop_rock:
+                    print("dropping rock")
                     if self.my_position != [self.rock[0], self.rock[1] + 1]:
                         position = [self.rock[0], self.rock[1] + 1]
                         st = self.get_tree_search(position, self.map)
@@ -480,16 +510,16 @@ class Agent():
     
     # funtion to go to a given position
     def go_to(self, position):
-        if self.my_position[0] < position[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0] + 1, self.my_position[1]] not in self.lastPositions:
+        if self.my_position[0] < position[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0] + 1, self.my_position[1]] not in self.lastPositions and [self.my_position[0] + 1, self.my_position[1]] not in self.no_go:
             key = "d"
             self.last_dir = 1
-        elif self.my_position[0] > position[0] and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0] - 1, self.my_position[1]] not in self.lastPositions:
+        elif self.my_position[0] > position[0] and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0] - 1, self.my_position[1]] not in self.lastPositions and [self.my_position[0] - 1, self.my_position[1]] not in self.no_go:
             key = "a"
             self.last_dir = 3
-        elif self.my_position[1] < position[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0], self.my_position[1] + 1] not in self.lastPositions:
+        elif self.my_position[1] < position[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0], self.my_position[1] + 1] not in self.lastPositions and [self.my_position[0], self.my_position[1] + 1] not in self.no_go:
             key = "s"
             self.last_dir = 2
-        elif self.my_position[1] > position[1] and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0], self.my_position[1] - 1] not in self.lastPositions:
+        elif self.my_position[1] > position[1] and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0], self.my_position[1] - 1] not in self.lastPositions and [self.my_position[0], self.my_position[1] - 1] not in self.no_go:
             key = "w"
             self.last_dir = 0
         else:
