@@ -69,6 +69,125 @@ class Agent():
             pookas_travesing = [enemy for enemy in state['enemies'] if enemy['name'] == "Pooka" and 'traverse' in enemy]
             self.no_go = []
 
+            # #########################################
+            # # get all the places that digdug can't go
+
+            # # enemies
+            # self.no_go += [enemy['pos'] for enemy in state['enemies']]
+
+            # # position where the enemy is heading
+            # for enemy in state['enemies']:
+            #     if enemy['dir'] == 0:
+            #         self.no_go.append([enemy['pos'][0], enemy['pos'][1] - 1])
+            #     elif enemy['dir'] == 1:
+            #         self.no_go.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+            #     elif enemy['dir'] == 2:
+            #         self.no_go.append([enemy['pos'][0], enemy['pos'][1] + 1])
+            #     elif enemy['dir'] == 3:
+            #         self.no_go.append([enemy['pos'][0] - 1, enemy['pos'][1]])
+
+            # # rocks
+            # self.no_go += [rock['pos'] for rock in state['rocks']]
+
+            # # fygar's fire
+            # for enemy in state['enemies']:
+            #     if enemy['name'] == "Fygar":
+            #         if enemy['dir'] == 1:
+            #             self.no_go.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+            #             self.no_go.append([enemy['pos'][0] + 2, enemy['pos'][1]])
+            #             self.no_go.append([enemy['pos'][0] + 3, enemy['pos'][1]])
+            #         elif enemy['dir'] == 3:
+            #             self.no_go.append([enemy['pos'][0] - 1, enemy['pos'][1]])
+            #             self.no_go.append([enemy['pos'][0] - 2, enemy['pos'][1]])
+            #             self.no_go.append([enemy['pos'][0] - 3, enemy['pos'][1]])
+
+            # ## lets dodge
+            # positions_to_avoid = [enemy['pos'] for enemy in state['enemies']]
+
+            # # first, if we are too close to a traversing pooka
+            # for enemy in pookas_travesing:
+            #     if self.distance(self.my_position, enemy['pos']) <= 2:
+            #         if enemy['dir'] == 0:
+            #             positions_to_avoid.append([enemy['pos'][0], enemy['pos'][1] - 1])
+            #         elif enemy['dir'] == 1:
+            #             positions_to_avoid.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+            #         elif enemy['dir'] == 2:
+            #             positions_to_avoid.append([enemy['pos'][0], enemy['pos'][1] + 1])
+            #         elif enemy['dir'] == 3:
+            #             positions_to_avoid.append([enemy['pos'][0] - 1, enemy['pos'][1]])
+
+            # # then, if we are too close to a fygar
+            # for enemy in state['enemies']:
+            #     if enemy['name'] == "Fygar" and self.distance(self.my_position, enemy['pos']) <= 3:
+            #         if enemy['dir'] == 1:
+            #             positions_to_avoid.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+            #             positions_to_avoid.append([enemy['pos'][0] + 2, enemy['pos'][1]])
+            #             positions_to_avoid.append([enemy['pos'][0] + 3, enemy['pos'][1]])
+            #         elif enemy['dir'] == 3:
+            #             positions_to_avoid.append([enemy['pos'][0] - 1, enemy['pos'][1]])
+            #             positions_to_avoid.append([enemy['pos'][0] - 2, enemy['pos'][1]])
+            #             positions_to_avoid.append([enemy['pos'][0] - 3, enemy['pos'][1]])
+
+            # # then, if we are too close to an enemy
+            #     if self.distance(self.my_position, enemy['pos']) <= 2:
+            #         if enemy['dir'] == 0:
+            #             positions_to_avoid.append([enemy['pos'][0], enemy['pos'][1] - 1])
+            #         elif enemy['dir'] == 1:
+            #             positions_to_avoid.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+            #         elif enemy['dir'] == 2:
+            #             positions_to_avoid.append([enemy['pos'][0], enemy['pos'][1] + 1])
+            #         elif enemy['dir'] == 3:
+            #             positions_to_avoid.append([enemy['pos'][0] - 1, enemy['pos'][1]])
+
+            # # the same dir as the closest enemy
+            #     if self.closest_enemy == enemy:
+            #         print(self.closest_enemy['dir'])
+            #         if self.closest_enemy['dir'] == 0:
+            #             positions_to_avoid.append([self.my_position[0], self.my_position[1] - 1])
+            #         elif self.closest_enemy['dir'] == 1:
+            #             positions_to_avoid.append([self.my_position[0] + 1, self.my_position[1]])
+            #         elif self.closest_enemy['dir'] == 2:
+            #             positions_to_avoid.append([self.my_position[0], self.my_position[1] + 1])
+            #         elif self.closest_enemy['dir'] == 3:
+            #             positions_to_avoid.append([self.my_position[0] - 1, self.my_position[1]])
+
+            # if positions_to_avoid != [enemy['pos'] for enemy in state['enemies']]:
+            #     possible_positions = []
+            #     if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in positions_to_avoid:
+            #         possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
+            #     if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in positions_to_avoid:
+            #         possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
+            #     if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in positions_to_avoid:
+            #         possible_positions.append([self.my_position[0], self.my_position[1] + 1])
+            #     if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in positions_to_avoid:
+            #         possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+
+            #     if possible_positions != []:
+            #         self.key = self.go_to(possible_positions[0])
+            #         return self.key
+                    
+
+
+            #########################################
+
+            rocks = [rock['pos'] for rock in state['rocks']]
+            if [self.my_position[0], self.my_position[1] - 1] in rocks:
+                # dodge the rock
+                options = [[self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]]]
+                options = [pos for pos in options if pos not in rocks]
+                if options != []:
+                    # closest option to the enemy
+                    closest = options[0]
+                    for pos in options:
+                        if self.distance(pos, self.closest_enemy['pos']) < self.distance(closest, self.closest_enemy['pos']):
+                            closest = pos
+                    self.key = self.go_to(closest)
+                    return self.key
+                else:
+                    self.key = "s"
+                    return self.key
+                    
+
             if pookas_travesing != []:
                 # if they are 1 square away, run away
                 cant_go = []
@@ -250,7 +369,6 @@ class Agent():
                         #else:
                         #print("Walls between")
                         #self.key = self.go_to(self.closest_enemy['pos'])
-                        
                     
                     # IF we are nor facing the enemy we probably too close, so we need to do a step back and redirect our direction
                     elif (self.closest_enemy['pos'][1] < self.my_position[1]): # up
@@ -524,16 +642,16 @@ class Agent():
     
     # funtion to go to a given position
     def go_to(self, position):
-        if self.my_position[0] < position[0] and [self.my_position[0] + 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0] + 1, self.my_position[1]] not in self.lastPositions and [self.my_position[0] + 1, self.my_position[1]] not in self.no_go:
+        if self.my_position[0] < position[0] and [self.my_position[0] + 1, self.my_position[1]] not in self.no_go:
             key = "d"
             self.last_dir = 1
-        elif self.my_position[0] > position[0] and [self.my_position[0] - 1, self.my_position[1]] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0] - 1, self.my_position[1]] not in self.lastPositions and [self.my_position[0] - 1, self.my_position[1]] not in self.no_go:
+        elif self.my_position[0] > position[0] and [self.my_position[0] - 1, self.my_position[1]] not in self.no_go:
             key = "a"
             self.last_dir = 3
-        elif self.my_position[1] < position[1] and [self.my_position[0], self.my_position[1] + 1] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0], self.my_position[1] + 1] not in self.lastPositions and [self.my_position[0], self.my_position[1] + 1] not in self.no_go:
+        elif self.my_position[1] < position[1] and [self.my_position[0], self.my_position[1] + 1] not in self.no_go:
             key = "s"
             self.last_dir = 2
-        elif self.my_position[1] > position[1] and [self.my_position[0], self.my_position[1] - 1] not in [rock['pos'] for rock in self.state['rocks']] and [self.my_position[0], self.my_position[1] - 1] not in self.lastPositions and [self.my_position[0], self.my_position[1] - 1] not in self.no_go:
+        elif self.my_position[1] > position[1] and [self.my_position[0], self.my_position[1] - 1] not in self.no_go:
             key = "w"
             self.last_dir = 0
         else:
@@ -565,19 +683,19 @@ class Agent():
             #         possible_positions.append([self.my_position[0], self.my_position[1] + 1])
             #     if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in rock_positions:
             #         possible_positions.append([self.my_position[0], self.my_position[1] - 1])
-            self.key = " "
-            return self.key
+            key = " "
 
             
-            # get the closest position to the goal
-            closest = possible_positions[0]
-            for pos in possible_positions:
-                if self.distance(pos, position) < self.distance(closest, position):
-                    closest = pos
+            # # get the closest position to the goal
+            # closest = possible_positions[0]
+            # for pos in possible_positions:
+            #     if self.distance(pos, position) < self.distance(closest, position):
+            #         closest = pos
 
-            self.key = self.go_to(closest)
-            self.lastPositions.append(self.my_position)
-            return self.key
+            # self.key = self.go_to(closest)
+            # self.lastPositions.append(self.my_position)
+            # return self.key
+        # self.key = key
         return key
     
     def dir_to_key(self, direction):
