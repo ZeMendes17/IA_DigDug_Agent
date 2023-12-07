@@ -43,6 +43,8 @@ class Agent():
         self.lastPositions = []
         self.no_go = []
 
+        self.temp = 0
+
     def update_state(self, state, current_state=STATE_IDLE):
         if 'map' in state:
             self.map = state['map']
@@ -193,7 +195,6 @@ class Agent():
                 cant_go = []
                 for enemy in pookas_travesing:
                     if self.distance(self.my_position, enemy['pos']) <= 2:
-                        print("OPAAAA")
                         if enemy['dir'] == 0:
                             cant_go.append([self.my_position[0], self.my_position[1] + 1])
                         elif enemy['dir'] == 1:
@@ -203,15 +204,12 @@ class Agent():
                         elif enemy['dir'] == 3:
                             cant_go.append([self.my_position[0] + 1, self.my_position[1]])
 
-                        print(cant_go)
 
                 if cant_go != []:
                     self.no_go = cant_go
                     possible_positions = [self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]
                     possible_positions = [pos for pos in possible_positions if pos not in self.no_go]
-                    print("Possible positions: ", possible_positions)
                     if possible_positions != []:
-                        print("Going to: ", possible_positions[0])
                         self.key = self.go_to(possible_positions[0])
                         return self.key
                     else:
@@ -246,6 +244,8 @@ class Agent():
                 pos_too_close = [enemy['pos'] for enemy in enemy_too_close]
 
                 if enemy_too_close != []:
+                    print("TAS PERTO PAH")
+                    self.temp += 1
                     possible_positions = []
 
                     up_flag = False
@@ -329,13 +329,6 @@ class Agent():
                     else:
                         self.around_enemy = False
                         return self.go_to([self.my_position[0], self.closest_enemy['pos'][1]])
-                    
-
-                if not self.same(self.closest_enemy):
-                    next_position = self.go_behind(self.closest_enemy)
-                    if next_position != None:
-                        self.key = next_position
-                        return next_position
 
                     
                 if self.fygar_our_way(self.closest_enemy):
@@ -346,7 +339,17 @@ class Agent():
                     else:
                         self.key = "w"
                         return self.key
+                    
+                if not self.same(self.closest_enemy):
+                    # if enemy's direction is up or down -> go to the same x
+                    if self.closest_enemy['dir'] == 0 or self.closest_enemy['dir'] == 2:
+                        next_position = [self.closest_enemy['pos'][0], self.my_position[1]]
+                    # if enemy's direction is left or right -> go to the same y
+                    else:
+                        next_position = [self.my_position[0], self.closest_enemy['pos'][1]]
 
+                    self.key = self.go_to(next_position)
+                    return self.key
                                             
 
                 self.go_to_position = self.my_position
@@ -506,7 +509,6 @@ class Agent():
                         entries = [border for tunnel in enemy_tunnels for border in self.get_tunnel_borders(tunnel)]
                         entries = [entry for entry in entries if entry not in rocks and entry not in below_rocks]
 
-                    print("entries: ", entries)
                     self.entry = self.closest_entry(entries)
                     # print(self.offlimits)
 
