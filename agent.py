@@ -90,33 +90,20 @@ class Agent():
                     return self.key
                     
 
+            cant_go_traverse = [] # positions that we can't go because of the pookas traversing
             if pookas_travesing != []:
                 # if they are 1 square away, run away
-                cant_go = []
                 for enemy in pookas_travesing:
                     if self.distance(self.my_position, enemy['pos']) <= 2:
+                        cant_go_traverse.append(enemy['pos'])
                         if enemy['dir'] == 0:
-                            cant_go.append([self.my_position[0], self.my_position[1] + 1])
+                            cant_go_traverse.append([enemy['pos'][0], enemy['pos'][1] - 1])
                         elif enemy['dir'] == 1:
-                            cant_go.append([self.my_position[0] - 1, self.my_position[1]])
+                            cant_go_traverse.append([enemy['pos'][0] + 1, enemy['pos'][1]])
                         elif enemy['dir'] == 2:
-                            cant_go.append([self.my_position[0], self.my_position[1] - 1])
+                            cant_go_traverse.append([enemy['pos'][0], enemy['pos'][1] + 1])
                         elif enemy['dir'] == 3:
-                            cant_go.append([self.my_position[0] + 1, self.my_position[1]])
-
-                # arraja borro
-                if cant_go != []:
-                    self.no_go = cant_go
-                    possible_positions = [self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]
-                    possible_positions = [pos for pos in possible_positions if pos not in self.no_go]
-                    if possible_positions != []:
-                        self.key = self.go_to(possible_positions[0])
-                        return self.key
-                    else:
-                        self.key = " "
-                        return self.key
-
-
+                            cant_go_traverse.append([enemy['pos'][0] - 1, enemy['pos'][1]])
 
             # get enemies in my tunnel
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
@@ -185,7 +172,7 @@ class Agent():
 
                 if [i for i in enemy_too_close if i in enemy_in_tunnel_pos] != []:
                     possible_positions = [[self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]]
-                    cant_go = []
+                    cant_go = cant_go_traverse # cant go because of the pookas traversing
                     possible_cant_go = []
 
                     for enemy in in_my_tunnel:
@@ -286,6 +273,8 @@ class Agent():
                             return self.key
 
                     possible_positions = [pos for pos in possible_positions if pos not in cant_go and pos not in possible_cant_go]
+                    rocks = [rock['pos'] for rock in state['rocks']]
+                    possible_positions = [pos for pos in possible_positions if pos not in rocks]
 
                     if possible_positions != [] and cant_go != [] and possible_cant_go != []:
                         # go to the furthest position from any enemy
@@ -306,7 +295,6 @@ class Agent():
                                 furthest = pos
                         self.key = self.go_to(furthest)
                         return self.key
-                            
                         
                 ###############################
                 # enemy_too_close = [enemy for enemy in in_my_tunnel if self.distance(self.my_position, enemy['pos']) <= 1]
@@ -380,6 +368,22 @@ class Agent():
                 #         else:
                 #             self.key = self.go_to(possible_positions[0])
                 #         return self.key
+
+                if cant_go_traverse != []: # there is still pookas traversing near us
+                    possible_positions = [self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]
+
+                    if [i for i in possible_positions if i in cant_go_traverse] != []: # if one of the possible positions is obstructed by a pooka traversing
+                        possible_positions = [pos for pos in possible_positions if pos not in cant_go_traverse]
+                        rocks = [rock['pos'] for rock in state['rocks']]
+                        possible_positions = [pos for pos in possible_positions if pos not in rocks]
+                        if possible_positions != []:
+                            # go to the furthest position from any enemy
+                            furthest = possible_positions[0]
+                            for pos in possible_positions:
+                                if self.distance(pos, self.closest_enemy['pos']) > self.distance(furthest, self.closest_enemy['pos']):
+                                    furthest = pos
+                            self.key = self.go_to(furthest)
+                            return self.key
                     
 
 
@@ -487,9 +491,24 @@ class Agent():
                     self.key = self.go_to(self.closest_enemy['pos'])
                     return self.key
                     
+            if cant_go_traverse != []: # there is still pookas traversing near us
+                print("cant go traverse")
+                possible_positions = [self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]
 
-            # if pooka is traversing, go back
-            # TEMPORARY
+                if [i for i in possible_positions if i in cant_go_traverse] != []: # if one of the possible positions is obstructed by a pooka traversing
+                    possible_positions = [pos for pos in possible_positions if pos not in cant_go_traverse]
+                    rocks = [rock['pos'] for rock in state['rocks']]
+                    possible_positions = [pos for pos in possible_positions if pos not in rocks]
+                    if possible_positions != []:
+                        # go to the furthest position from any enemy
+                        furthest = possible_positions[0]
+                        for pos in possible_positions:
+                            if self.distance(pos, self.closest_enemy['pos']) > self.distance(furthest, self.closest_enemy['pos']):
+                                furthest = pos
+                        self.key = self.go_to(furthest)
+                        return self.key
+
+            # if no traversing pooka is mocking us, we can continue
             closest_enemy = state['enemies'][0]
             for enemy in state['enemies']:
                 if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, closest_enemy['pos']):
