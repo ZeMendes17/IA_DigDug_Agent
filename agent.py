@@ -194,10 +194,12 @@ class Agent():
                                 cant_go.append([enemy['pos'][0] + 1, enemy['pos'][1]])
                                 cant_go.append([enemy['pos'][0] + 2, enemy['pos'][1]])
                                 cant_go.append([enemy['pos'][0] + 3, enemy['pos'][1]])
+                                possible_cant_go.append([enemy['pos'][0] + 1, enemy['pos'][1]])
                             elif enemy['dir'] == 3:
                                 cant_go.append([enemy['pos'][0] - 1, enemy['pos'][1]])
                                 cant_go.append([enemy['pos'][0] - 2, enemy['pos'][1]])
                                 cant_go.append([enemy['pos'][0] - 3, enemy['pos'][1]])
+                                possible_cant_go.append([enemy['pos'][0] - 1, enemy['pos'][1]])
 
                     if [enemy['pos'] for enemy in in_my_tunnel if enemy['pos'] in cross_enemies] != []:
                         cant_go += [enemy['pos'] for enemy in in_my_tunnel if enemy['pos'] in cross_enemies]
