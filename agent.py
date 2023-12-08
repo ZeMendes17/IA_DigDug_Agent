@@ -104,7 +104,7 @@ class Agent():
                         elif enemy['dir'] == 3:
                             cant_go.append([self.my_position[0] + 1, self.my_position[1]])
 
-
+                # arraja borro
                 if cant_go != []:
                     self.no_go = cant_go
                     possible_positions = [self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]
@@ -161,18 +161,43 @@ class Agent():
                     [self.my_position[0] + 2, self.my_position[1]]
                 ]
 
-                enemy_too_close = cross_enemies + diagonal_enemies + elongated_cross_enemies
+                fygar_fire = [
+                    [self.my_position[0] - 1, self.my_position[1] - 1],
+                    [self.my_position[0] - 2, self.my_position[1] - 1],
+                    [self.my_position[0] - 3, self.my_position[1] - 1],
+                    [self.my_position[0] + 1, self.my_position[1] - 1],
+                    [self.my_position[0] + 2, self.my_position[1] - 1],
+                    [self.my_position[0] + 3, self.my_position[1] - 1],
+                    [self.my_position[0] - 1, self.my_position[1] + 1],
+                    [self.my_position[0] - 2, self.my_position[1] + 1],
+                    [self.my_position[0] - 3, self.my_position[1] + 1],
+                    [self.my_position[0] + 1, self.my_position[1] + 1],
+                    [self.my_position[0] + 2, self.my_position[1] + 1],
+                    [self.my_position[0] + 3, self.my_position[1] + 1]
+                ]
+
+
+
+                enemy_too_close = cross_enemies + diagonal_enemies + elongated_cross_enemies + fygar_fire
                 alert = False
                 
                 enemy_in_tunnel_pos = [enemy['pos'] for enemy in in_my_tunnel]
-
-
-
 
                 if [i for i in enemy_too_close if i in enemy_in_tunnel_pos] != []:
                     possible_positions = [[self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]]
                     cant_go = []
                     possible_cant_go = []
+
+                    for enemy in in_my_tunnel:
+                        if enemy['name'] == "Fygar" and enemy['pos'] in fygar_fire:
+                            if enemy['dir'] == 1:
+                                cant_go.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+                                cant_go.append([enemy['pos'][0] + 2, enemy['pos'][1]])
+                                cant_go.append([enemy['pos'][0] + 3, enemy['pos'][1]])
+                            elif enemy['dir'] == 3:
+                                cant_go.append([enemy['pos'][0] - 1, enemy['pos'][1]])
+                                cant_go.append([enemy['pos'][0] - 2, enemy['pos'][1]])
+                                cant_go.append([enemy['pos'][0] - 3, enemy['pos'][1]])
 
                     if [enemy['pos'] for enemy in in_my_tunnel if enemy['pos'] in cross_enemies] != []:
                         cant_go += [enemy['pos'] for enemy in in_my_tunnel if enemy['pos'] in cross_enemies]
