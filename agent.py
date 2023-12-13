@@ -50,6 +50,7 @@ class Agent():
             self.map = state['map']
             self.level = state['level']
             self.size  = state['size']
+            self.temp = 0
 
         elif 'digdug' in state and state['enemies'] != []:
             # print(self.path)
@@ -66,7 +67,9 @@ class Agent():
             self.my_tunnel = self.get_tunnel(self.my_position[0], self.my_position[1], self.map, [])
 
             ## if you want to see the map
-            # print(self.print_enemy_tunnels(self.get_enemy_tunnels(state['enemies'])))
+            # if self.temp == 0:
+            #     print(self.print_enemy_tunnels(self.get_enemy_tunnels(state['enemies'])))
+            #     self.temp += 1
 
             pookas_travesing = [enemy for enemy in state['enemies'] if enemy['name'] == "Pooka" and 'traverse' in enemy]
             self.no_go = []
@@ -96,14 +99,18 @@ class Agent():
                 for enemy in pookas_travesing:
                     if self.distance(self.my_position, enemy['pos']) <= 2:
                         cant_go_traverse.append(enemy['pos'])
+                        cant_go_traverse.append([enemy['pos'][0], enemy['pos'][1] - 1])
+                        cant_go_traverse.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+                        cant_go_traverse.append([enemy['pos'][0], enemy['pos'][1] + 1])
+                        cant_go_traverse.append([enemy['pos'][0] - 1, enemy['pos'][1]])
                         if enemy['dir'] == 0:
-                            cant_go_traverse.append([enemy['pos'][0], enemy['pos'][1] - 1])
+                            cant_go_traverse.append([enemy['pos'][0], enemy['pos'][1] - 2])
                         elif enemy['dir'] == 1:
-                            cant_go_traverse.append([enemy['pos'][0] + 1, enemy['pos'][1]])
+                            cant_go_traverse.append([enemy['pos'][0] + 2, enemy['pos'][1]])
                         elif enemy['dir'] == 2:
-                            cant_go_traverse.append([enemy['pos'][0], enemy['pos'][1] + 1])
+                            cant_go_traverse.append([enemy['pos'][0], enemy['pos'][1] + 2])
                         elif enemy['dir'] == 3:
-                            cant_go_traverse.append([enemy['pos'][0] - 1, enemy['pos'][1]])
+                            cant_go_traverse.append([enemy['pos'][0] - 2, enemy['pos'][1]])
 
             # get enemies in my tunnel
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
@@ -1049,8 +1056,11 @@ class Agent():
             for j in range(len(self.map)):
                 for tunnel in tunnels:
                     if [j, i] in self.get_tunnel_borders(tunnel):
-                        print("B", end=" ")
+                        print("O", end=" ")
                         break 
+                    if [j, i] in [rock['pos'] for rock in self.state['rocks']]:
+                        print("R", end=" ")
+                        break
                     if [j, i] in [entry[0] for entry in self.get_tunnel_entries(tunnel)]:
                         print("E", end=" ")
                         break

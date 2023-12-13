@@ -41,7 +41,7 @@ async def agent_loop(server_address="localhost:8000", agent_name="student"):
                 start = round(time.time() * 1000)
                 key = agent.update_state(state)
                 end = round(time.time() * 1000)
-                # print("Time: ", end - start)
+                print("Time: ", end - start)
 
                 await websocket.send(
                     json.dumps({"cmd": "key", "key": key})
