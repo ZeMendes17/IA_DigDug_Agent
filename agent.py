@@ -482,7 +482,7 @@ class Agent():
                             self.go_to_position[0] = self.closest_enemy['pos'][0]
                             self.key = self.go_to(self.go_to_position)
 
-                        print("randomly chosen key: ", self.key)
+
 
 
                     elif  (self.closest_enemy['pos'][0] > self.my_position[0]): # right
@@ -495,7 +495,6 @@ class Agent():
                             self.go_to_position[1] = self.closest_enemy['pos'][1]
                             self.key = self.go_to(self.go_to_position)
 
-                        print("randomly chosen key: ", self.key)
 
                        
                     elif (self.closest_enemy['pos'][1] > self.my_position[1]): # down
@@ -507,7 +506,6 @@ class Agent():
                             self.go_to_position[0] = self.closest_enemy['pos'][0]
                             self.key = self.go_to(self.go_to_position)
 
-                        print("randomly chosen key: ", self.key)
 
                     elif (self.closest_enemy['pos'][0] < self.my_position[0]): # left
                         if self.closest_enemy['pos'][1] == self.my_position[1]:
@@ -518,7 +516,6 @@ class Agent():
                             self.go_to_position[1] = self.closest_enemy['pos'][1]
                             self.key = self.go_to(self.go_to_position)
 
-                        print("randomly chosen key: ", self.key)
 
                     return self.key                  
 
