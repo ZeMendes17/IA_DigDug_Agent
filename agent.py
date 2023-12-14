@@ -42,9 +42,9 @@ class Agent():
         self.drop_rock = False
 
         self.lastPositions = []
-        self.no_go = []
 
         self.temp = 0
+        self.next = None
 
     def update_state(self, state, current_state=STATE_IDLE):
         if 'map' in state:
@@ -73,7 +73,6 @@ class Agent():
             #     self.temp += 1
 
             pookas_travesing = [enemy for enemy in state['enemies'] if enemy['name'] == "Pooka" and 'traverse' in enemy]
-            self.no_go = []
 
 
             rocks = [rock['pos'] for rock in state['rocks']]
@@ -83,11 +82,11 @@ class Agent():
                 options = [pos for pos in options if pos not in rocks]
                 if options != []:
                     # closest option to the enemy
-                    closest = options[0]
+                    furthest = options[0]
                     for pos in options:
-                        if self.distance(pos, self.closest_enemy['pos']) < self.distance(closest, self.closest_enemy['pos']):
-                            closest = pos
-                    self.key = self.go_to(closest)
+                        if self.distance(pos, self.closest_enemy['pos']) > self.distance(furthest, self.closest_enemy['pos']):
+                            furthest = pos
+                    self.key = self.go_to(furthest)
                     return self.key
                 else:
                     self.key = "s"
@@ -298,6 +297,8 @@ class Agent():
                         return self.key
 
                     possible_positions = [pos for pos in possible_positions if pos not in cant_go]
+                    rocks = [rock['pos'] for rock in state['rocks']]
+                    possible_positions = [pos for pos in possible_positions if pos not in rocks]
 
                     if possible_positions != [] and cant_go != []:
                         # go to the furthest position from any enemy
@@ -636,6 +637,7 @@ class Agent():
                     if entries == []:
                         entries = [border for tunnel in enemy_tunnels for border in self.get_tunnel_borders(tunnel)]
                         entries = [entry for entry in entries if entry not in rocks and entry not in below_rocks]
+                        print("entries: ", entries)
 
                     self.entry = self.closest_entry(entries)
                     # print(self.offlimits)
@@ -772,60 +774,36 @@ class Agent():
     
     # funtion to go to a given position
     def go_to(self, position):
-        if self.my_position[0] < position[0] and [self.my_position[0] + 1, self.my_position[1]] not in self.no_go:
+        if self.next != None:
+            temp = self.next
+            self.next = None
+            return self.go_to(temp)
+
+        rocks = [rock['pos'] for rock in self.state['rocks']]
+        if self.my_position[0] < position[0] and [self.my_position[0] + 1, self.my_position[1]] not in rocks:
             key = "d"
             self.last_dir = 1
-        elif self.my_position[0] > position[0] and [self.my_position[0] - 1, self.my_position[1]] not in self.no_go:
+        elif self.my_position[0] > position[0] and [self.my_position[0] - 1, self.my_position[1]] not in rocks:
             key = "a"
             self.last_dir = 3
-        elif self.my_position[1] < position[1] and [self.my_position[0], self.my_position[1] + 1] not in self.no_go:
+        elif self.my_position[1] < position[1] and [self.my_position[0], self.my_position[1] + 1] not in rocks:
             key = "s"
             self.last_dir = 2
-        elif self.my_position[1] > position[1] and [self.my_position[0], self.my_position[1] - 1] not in self.no_go:
+        elif self.my_position[1] > position[1] and [self.my_position[0], self.my_position[1] - 1] not in rocks:
             key = "w"
             self.last_dir = 0
         else:
-            # # probably a rock, we need to go around
-            # rock_positions = [rock['pos'] for rock in self.state['rocks']]
-            # possible_positions = []
-            # if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in rock_positions:
-            #     possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
-            # if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in rock_positions:
-            #     possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-            # if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in rock_positions:
-            #     possible_positions.append([self.my_position[0], self.my_position[1] + 1])
-            # if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in rock_positions:
-            #     possible_positions.append([self.my_position[0], self.my_position[1] - 1])
+            # probably a rock, we need to go around
+            if self.my_position[0] < position[0]:
+                key = "w"
+                self.next = [self.my_position[0] + 1, self.my_position[1]]
+            elif self.my_position[0] > position[0]:
+                key = "w"
+                self.next = [self.my_position[0] - 1, self.my_position[1]]
+            else:
+                key = " "
 
-            # if possible_positions == []:
-            #     key = " "
-            #     return key
-            
-            # possible_positions = [pos for pos in possible_positions if pos not in self.lastPositions]
-            # if possible_positions == []:
-            #     self.lastPositions = []
-            #     possible_positions = []
-            #     if self.my_position[0] + 1 < self.size[0] and [self.my_position[0] + 1, self.my_position[1]] not in rock_positions:
-            #         possible_positions.append([self.my_position[0] + 1, self.my_position[1]])
-            #     if self.my_position[0] - 1 >= 0 and [self.my_position[0] - 1, self.my_position[1]] not in rock_positions:
-            #         possible_positions.append([self.my_position[0] - 1, self.my_position[1]])
-            #     if self.my_position[1] + 1 < self.size[1] and [self.my_position[0], self.my_position[1] + 1] not in rock_positions:
-            #         possible_positions.append([self.my_position[0], self.my_position[1] + 1])
-            #     if self.my_position[1] - 1 >= 0 and [self.my_position[0], self.my_position[1] - 1] not in rock_positions:
-            #         possible_positions.append([self.my_position[0], self.my_position[1] - 1])
-            key = " "
-
-            
-            # # get the closest position to the goal
-            # closest = possible_positions[0]
-            # for pos in possible_positions:
-            #     if self.distance(pos, position) < self.distance(closest, position):
-            #         closest = pos
-
-            # self.key = self.go_to(closest)
-            # self.lastPositions.append(self.my_position)
-            # return self.key
-        # self.key = key
+        print("key: ", key)
         return key
     
     def dir_to_key(self, direction):
