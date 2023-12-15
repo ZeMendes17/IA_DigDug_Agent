@@ -631,13 +631,15 @@ class Agent():
                     # if an offlimit is one of the entries, remove it
                     entries = [entry for entry in entries if entry[0] not in self.offlimits]
 
+                    # if there are no entries, go to the closest square
                     if entries == []:
                         entries = [border for tunnel in enemy_tunnels for border in self.get_tunnel_borders(tunnel)]
                         entries = [entry for entry in entries if entry not in rocks and entry not in below_rocks]
-                        print("entries: ", entries)
+                        
+                        self.entry = self.closest_position(entries)
 
-                    self.entry = self.closest_entry(entries)
-                    # print(self.offlimits)
+                    else:
+                        self.entry = self.closest_entry(entries)
 
                     st = self.get_tree_search(self.entry[0], self.map)
                     self.path = st.search()
@@ -789,12 +791,36 @@ class Agent():
             self.last_dir = 0
         else:
             # probably a rock, we need to go around
+            enemy = self.closest_enemy
             if self.my_position[0] < position[0]:
-                key = "w"
-                self.next = [self.my_position[0] + 1, self.my_position[1]]
+                if self.my_position[1] < enemy['pos'][1]:
+                    key = "s"
+                    self.next = [self.my_position[0], self.my_position[1] + 1]
+                else:
+                    key = "w"
+                    self.next = [self.my_position[0] + 1, self.my_position[1]]
             elif self.my_position[0] > position[0]:
+                if self.my_position[1] < enemy['pos'][1]:
+                    key = "s"
+                    self.next = [self.my_position[0], self.my_position[1] + 1]
+                else:
+                    key = "w"
+                    self.next = [self.my_position[0] - 1, self.my_position[1]]
                 key = "w"
-                self.next = [self.my_position[0] - 1, self.my_position[1]]
+            elif self.my_position[1] < position[1]:
+                if self.my_position[0] < enemy['pos'][0]:
+                    key = "d"
+                    self.next = [self.my_position[0] + 1, self.my_position[1]]
+                else:
+                    key = "a"
+                    self.next = [self.my_position[0], self.my_position[1] + 1]
+            elif self.my_position[1] > position[1]:
+                if self.my_position[0] < enemy['pos'][0]:
+                    key = "d"
+                    self.next = [self.my_position[0] + 1, self.my_position[1]]
+                else:
+                    key = "a"
+                    self.next = [self.my_position[0], self.my_position[1] - 1]
             else:
                 key = " "
 
@@ -901,12 +927,20 @@ class Agent():
 
         return borders
     
-    # function to get the closest position from a list of positions
+    # function to get the closest entry from a list of entries
     def closest_entry(self, entries):
         closest = entries[0]
         for entry in entries:
             if self.distance(self.my_position, entry[0]) < self.distance(self.my_position, closest[0]):
                 closest = entry
+        return closest
+    
+    # function to get the closest position from a list of positions
+    def closest_position(self, positions):
+        closest = positions[0]
+        for position in positions:
+            if self.distance(self.my_position, position) < self.distance(self.my_position, closest):
+                closest = position
         return closest
     
     # function to see if digdug can enter a tunnel
