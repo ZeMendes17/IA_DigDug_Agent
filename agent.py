@@ -1,3 +1,4 @@
+import random
 from digdug import *
 
 # states
@@ -288,6 +289,10 @@ class Agent():
                         for pos in possible_positions:
                             if self.distance(pos, self.closest_enemy['pos']) > self.distance(furthest, self.closest_enemy['pos']):
                                 furthest = pos
+
+                        # randomize it so it doesn't get stuck in a loop of running away
+                        #random.shuffle(possible_positions)
+                        #self.key = self.go_to(possible_positions[0])
                         self.key = self.go_to(furthest)
                         return self.key
 
@@ -301,6 +306,10 @@ class Agent():
                         for pos in possible_positions:
                             if self.distance(pos, self.closest_enemy['pos']) > self.distance(furthest, self.closest_enemy['pos']):
                                 furthest = pos
+
+                        # randomize it so it doesn't get stuck in a loop of running away
+                        #random.shuffle(possible_positions)
+                        #self.key = self.go_to(possible_positions[0])
                         self.key = self.go_to(furthest)
                         return self.key
                         
@@ -390,6 +399,9 @@ class Agent():
                             for pos in possible_positions:
                                 if self.distance(pos, self.closest_enemy['pos']) > self.distance(furthest, self.closest_enemy['pos']):
                                     furthest = pos
+
+                            #random.shuffle(possible_positions)
+                            #self.key = self.go_to(possible_positions[0])
                             self.key = self.go_to(furthest)
                             return self.key
                     
@@ -448,6 +460,7 @@ class Agent():
                     if self.is_facing_enemy():
                         # and there is no walls between us shoot
                         #if self.only_tunnel_between() and not self.wait:
+
                         self.key = "A"
                         
                         # if there is walls lets keep going towards the enemy
@@ -460,7 +473,9 @@ class Agent():
 
                         # If we are in the same x as the enemy, we need to do a step back
                         if self.closest_enemy['pos'][0] == self.my_position[0]:
-                            self.key = 's'
+                            # randomize the direction between left, right and down
+                            self.key = random.choice(["a", "d", "s"])
+                            #self.key = "s"
 
                         # If we are not in the same x as the enemy, we need to go to the same x as the enemy
                         else:
@@ -468,28 +483,39 @@ class Agent():
                             self.key = self.go_to(self.go_to_position)
 
 
+
+
                     elif  (self.closest_enemy['pos'][0] > self.my_position[0]): # right
                         if self.closest_enemy['pos'][1] == self.my_position[1]:
-                            self.key = 'a'
+                            # randomize the direction between up, down and left
+                            self.key = random.choice(["w", "s", "a"])
+                            #self.key = 'a'
 
                         else:
                             self.go_to_position[1] = self.closest_enemy['pos'][1]
                             self.key = self.go_to(self.go_to_position)
+
 
                        
                     elif (self.closest_enemy['pos'][1] > self.my_position[1]): # down
                         if self.closest_enemy['pos'][0] == self.my_position[0]:
-                            self.key = 'w'                      
+                            # randomize the direction between up, right and left
+                            self.key = random.choice(["w", "d", "a"])
+                            #self.key = 'w'                      
                         else:
                             self.go_to_position[0] = self.closest_enemy['pos'][0]
                             self.key = self.go_to(self.go_to_position)
 
+
                     elif (self.closest_enemy['pos'][0] < self.my_position[0]): # left
                         if self.closest_enemy['pos'][1] == self.my_position[1]:
-                            self.key = 'd'
+                            # randomize the direction between up, down and right
+                            self.key = random.choice(["w", "s", "d"])
+                            #self.key = 'd'
                         else:
                             self.go_to_position[1] = self.closest_enemy['pos'][1]
                             self.key = self.go_to(self.go_to_position)
+
 
                     return self.key                  
 
@@ -513,6 +539,9 @@ class Agent():
                         for pos in possible_positions:
                             if self.distance(pos, self.closest_enemy['pos']) > self.distance(furthest, self.closest_enemy['pos']):
                                 furthest = pos
+
+                        #random.shuffle(possible_positions)
+                        #self.key = self.go_to(possible_positions[0])
                         self.key = self.go_to(furthest)
                         return self.key
 
@@ -677,17 +706,15 @@ class Agent():
         agent_dir = self.get_direction()
         
         if (agent_dir == 0 and self.closest_enemy['pos'][0] == self.my_position[0] and self.closest_enemy['pos'][1] < self.my_position[1]): # up
-            # print("facing up")
             return True
             
-        elif (agent_dir == 1 and self.closest_enemy['pos'][1] == self.my_position[1] and self.closest_enemy['pos'][0] > self.my_position[0]):
+        elif (agent_dir == 1 and self.closest_enemy['pos'][1] == self.my_position[1] and self.closest_enemy['pos'][0] > self.my_position[0]): # right
             return True
         
-        elif (agent_dir == 2 and self.closest_enemy['pos'][0] == self.my_position[0] and self.closest_enemy['pos'][1] > self.my_position[1]):
-            # print("facing down")
+        elif (agent_dir == 2 and self.closest_enemy['pos'][0] == self.my_position[0] and self.closest_enemy['pos'][1] > self.my_position[1]): # down
             return True
         
-        elif (agent_dir == 3 and self.closest_enemy['pos'][1] == self.my_position[1] and self.closest_enemy['pos'][0] < self.my_position[0]):
+        elif (agent_dir == 3 and self.closest_enemy['pos'][1] == self.my_position[1] and self.closest_enemy['pos'][0] < self.my_position[0]): # left
             return True
         
         return False
