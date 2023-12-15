@@ -771,7 +771,7 @@ class Agent():
             else:
                 key = " "
 
-        print("key: ", key)
+        # print("key: ", key)
         return key
     
     def dir_to_key(self, direction):
