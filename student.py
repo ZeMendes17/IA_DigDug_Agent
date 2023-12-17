@@ -37,11 +37,12 @@ async def agent_loop(server_address="localhost:8000", agent_name="student"):
 
                 ## AI agent logic ##
 
-                # create an instance of the agent
-                start = round(time.time() * 1000)
+                # calculate the time it takes to update the state
+                # start = round(time.time() * 1000)
+                # update the state --> returns the key to be pressed
                 key = agent.update_state(state)
-                end = round(time.time() * 1000)
-                print("Time: ", end - start)
+                # end = round(time.time() * 1000)
+                # print("Time: ", end - start)
 
                 await websocket.send(
                     json.dumps({"cmd": "key", "key": key})

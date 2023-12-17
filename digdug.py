@@ -2,15 +2,16 @@ from tree_search import *
 
 class DigDug(SearchDomain):
     def __init__(self, offlimits, map, size):
-        self.offlimits = offlimits
+        self.offlimits = offlimits # List of [x, y] pairs --> defines where DigDug can't go
         self.map = map
-        self.size = size
+        self.size = size # [x, y] pair --> x is width, y is height
     
     def can_go(self, x, y):            
-        for offlimit in self.offlimits:
+        for offlimit in self.offlimits: # can't go to offlimit squares
             if offlimit[0] == x and offlimit[1] == y:
                 return False
             
+        # also has to be inside the map
         if self.size[0] < x or x < 0:
             return False
         if self.size[1] < y or y < 0:
@@ -44,7 +45,7 @@ class DigDug(SearchDomain):
             newstate = [x+1, y]
         return newstate
     
-    def cost(self, state, action):
+    def cost(self, state, action): # the cost of moving to a square is always 1
         return 1
     
     def heuristic(self, state, goal):
