@@ -12,38 +12,26 @@ current_state = STATE_IDLE
 class Agent():
     def __init__(self):
         self.state = None
-        self.key = " "
+        self.key = " " # key to press
         self.map = None
-        self.size = None
+        self.size = None # size of the map
         self.my_position = None
         self.my_tunnel = []
-
         self.closest_enemy = None
-        self.offlimits = set()
-        self.trace_back = []
-        self.path = []
-        self.path_behind_enemy = []
-        self.wait = False
-        self.entry = None
-
+        self.offlimits = set() # positions that we can't go
+        self.path = [] # path to the closest enemy, tree search
+        self.wait = False # if we are waiting
+        self.entry = None # entry to the tunnel
         self.last_dir = None
         self.go_to_position = None
-
         self.go_up = False
         self.go_rigth = False
         self.go_left = False
         self.flag = False
-
         self.level = 0
-        self.count = 1
-        self.around_enemy = False
-
-        self.rock = None
-        self.drop_rock = False
-
-        self.lastPositions = []
-
-        self.next = None
+        self.count = 1 # used to know when the level changes
+        self.around_enemy = False # if we are trying to go around an enemy
+        self.next = None # next position to go to when we are trying to go around a rock
 
     def update_state(self, state, current_state=STATE_IDLE):
         if 'map' in state:
@@ -421,7 +409,6 @@ class Agent():
                     return self.key
                     
             if cant_go_traverse != []: # there is still pookas traversing near us
-                print("cant go traverse")
                 possible_positions = [self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]
 
                 if [i for i in possible_positions if i in cant_go_traverse] != []: # if one of the possible positions is obstructed by a pooka traversing
@@ -450,8 +437,6 @@ class Agent():
                 self.key = self.go_to(closest_enemy['pos'])
                 return self.key
             
-            self.trace_back = []
-
             if self.path == []:
                 if self.wait:
                     self.key = " "
@@ -515,11 +500,9 @@ class Agent():
             self.count += 1
             self.my_tunnel = []
             self.offlimits = set()
-            self.trace_back = []
             self.path = []
             self.wait = False
             self.key = " "
-            self.lastPositions = []
         return self.key
     
     # function to know if there is only tunnel between digdug and the enemy
@@ -668,7 +651,6 @@ class Agent():
             else:
                 key = " "
 
-        # print("key: ", key)
         return key
     
     def dir_to_key(self, direction):
