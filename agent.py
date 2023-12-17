@@ -34,6 +34,7 @@ class Agent():
         self.next = None # next position to go to when we are trying to go around a rock
 
     def update_state(self, state, current_state=STATE_IDLE):
+        # when the level changes, we need to update the map
         if 'map' in state:
             self.map = state['map']
             self.level = state['level']
@@ -42,8 +43,8 @@ class Agent():
             ## if you want to see the map
             # print(self.print_enemy_tunnels(self.get_enemy_tunnels(state['enemies'])))
 
+        # state received from the server during the game
         elif 'digdug' in state and state['enemies'] != []:
-            # print(self.path)
             if self.level != self.count:
                 self.key = " "
                 return self.key
@@ -58,6 +59,7 @@ class Agent():
             pookas_travesing = [enemy for enemy in state['enemies'] if enemy['name'] == "Pooka" and 'traverse' in enemy]
 
 
+            # if there is a rock above us, dodge it
             rocks = [rock['pos'] for rock in state['rocks']]
             if [self.my_position[0], self.my_position[1] - 1] in rocks:
                 # dodge the rock
@@ -75,7 +77,7 @@ class Agent():
                     self.key = "s"
                     return self.key
                     
-
+            # if there are pookas traversing, too close to us, we need to run away
             cant_go_traverse = [] # positions that we can't go because of the pookas traversing
             if pookas_travesing != []:
                 # if they are 1 square away, run away
@@ -97,7 +99,8 @@ class Agent():
 
             # get enemies in my tunnel
             in_my_tunnel = [enemy for enemy in state['enemies'] if enemy['pos'] in self.my_tunnel]
-            # print(in_my_tunnel)
+            
+            # if there are enemies in my tunnel, we need to go after them or run away if they are too close
             if in_my_tunnel != []: # there are enemies in my tunnel
                 # get the closest enemy
                 self.closest_enemy = in_my_tunnel[0]
@@ -105,7 +108,6 @@ class Agent():
                     if self.distance(self.my_position, enemy['pos']) < self.distance(self.my_position, self.closest_enemy['pos']):
                         self.closest_enemy = enemy
 
-                # if there is an enemy too close, run away
                 cross_enemies = [
                     [self.my_position[0], self.my_position[1] - 1],
                     [self.my_position[0], self.my_position[1] + 1],
@@ -120,6 +122,7 @@ class Agent():
                     [self.my_position[0] + 1, self.my_position[1] + 1]
                 ]
 
+                # can hit us if we are in the same x or y and they are looking at us
                 elongated_cross_enemies = [
                     [self.my_position[0], self.my_position[1] - 2],
                     [self.my_position[0], self.my_position[1] + 2],
@@ -152,7 +155,7 @@ class Agent():
                 if [i for i in enemy_too_close if i in enemy_in_tunnel_pos] != []:
                     possible_positions = [[self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]]
                     cant_go = cant_go_traverse # cant go because of the pookas traversing
-                    possible_cant_go = []
+                    possible_cant_go = [] # this array is used to try and avoid going in the same direction as the enemy (so we don't follow it forever)
 
                     for enemy in in_my_tunnel:
                         if enemy['name'] == "Fygar" and enemy['pos'] in fygar_fire:
@@ -250,6 +253,7 @@ class Agent():
                             self.key = "A"
                             return self.key
 
+                    # see if we can go to a position having the restrictions of cant_go and possible_cant_go
                     possible_positions = [pos for pos in possible_positions if pos not in cant_go and pos not in possible_cant_go]
                     rocks = [rock['pos'] for rock in state['rocks']]
                     possible_positions = [pos for pos in possible_positions if pos not in rocks]
@@ -264,6 +268,7 @@ class Agent():
                         self.key = self.go_to(furthest)
                         return self.key
 
+                    # if we can't go to any position in the possible positions
                     possible_positions = [pos for pos in possible_positions if pos not in cant_go]
                     rocks = [rock['pos'] for rock in state['rocks']]
                     possible_positions = [pos for pos in possible_positions if pos not in rocks]
@@ -279,7 +284,8 @@ class Agent():
                         return self.key
                         
 
-                if cant_go_traverse != []: # there is still pookas traversing near us
+                # there is still pookas traversing near us
+                if cant_go_traverse != []:
                     possible_positions = [self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]
 
                     if [i for i in possible_positions if i in cant_go_traverse] != []: # if one of the possible positions is obstructed by a pooka traversing
@@ -302,6 +308,7 @@ class Agent():
                     self.around_enemy = False
                     
 
+                # go around Fygar
                 if self.around_enemy:
                     if self.closest_enemy['dir'] == 1 and self.closest_enemy['pos'][0] - self.my_position[0] <= 2:
                         self.key = "a"
@@ -325,6 +332,7 @@ class Agent():
                         self.key = "w"
                         return self.key
                     
+                # if the enemy is not in the same x or y as us, go to the same x or y
                 if not self.same(self.closest_enemy):
                     # if enemy's direction is up or down -> go to the same x
                     if self.closest_enemy['dir'] == 0 or self.closest_enemy['dir'] == 2:
@@ -340,6 +348,7 @@ class Agent():
                 self.go_to_position = self.my_position
                 # if the enemy is close enough, face it and attack
 
+                # shoot the enemy or position ourselves to shoot
                 if self.distance(self.my_position, self.closest_enemy['pos']) <= 4 and self.same(self.closest_enemy) and self.is_facing_enemy() and self.enemy_our_way(self.closest_enemy):
                     # shoots if the enemy is in our way
 
@@ -408,7 +417,8 @@ class Agent():
                     self.key = self.go_to(self.closest_enemy['pos'])
                     return self.key
                     
-            if cant_go_traverse != []: # there is still pookas traversing near us
+            # there is still pookas traversing near us
+            if cant_go_traverse != []:
                 possible_positions = [self.my_position[0] + 1, self.my_position[1]], [self.my_position[0] - 1, self.my_position[1]], [self.my_position[0], self.my_position[1] + 1], [self.my_position[0], self.my_position[1] - 1]
 
                 if [i for i in possible_positions if i in cant_go_traverse] != []: # if one of the possible positions is obstructed by a pooka traversing
@@ -437,16 +447,19 @@ class Agent():
                 self.key = self.go_to(closest_enemy['pos'])
                 return self.key
             
+            # there is no tree search given path
             if self.path == []:
+                # waiting to enter the tunnel
                 if self.wait:
                     self.key = " "
                     
-                    if self.enter_tunnel():
+                    if self.enter_tunnel(): # enter the tunnel
                         self.wait = False
                         self.key = self.go_to(self.entry[1])
                     
                     return self.key
 
+                # get a new path
                 else:
                     enemy_tunnels = self.get_enemy_tunnels(state['enemies'])
                     entries = [entry for tunnel in enemy_tunnels for entry in self.get_tunnel_entries(tunnel)]
