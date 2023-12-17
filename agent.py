@@ -504,26 +504,6 @@ class Agent():
             self.wait = False
             self.key = " "
         return self.key
-    
-    # function to know if there is only tunnel between digdug and the enemy
-    def only_tunnel_between(self):
-
-        blocks_between = []
-
-        if  (self.closest_enemy['pos'][0] == self.my_position[0] and self.closest_enemy['pos'][1] < self.my_position[1]): # up
-            blocks_between = [[self.my_position[0], i] for i in range(self.my_position[1]+1, self.closest_enemy['pos'][1])]
-
-        elif  (self.closest_enemy['pos'][1] == self.my_position[1] and self.closest_enemy['pos'][0] > self.my_position[0]): # right
-            blocks_between = [[i, self.my_position[1]] for i in range(self.my_position[0]+1, self.closest_enemy['pos'][0])]
-
-        elif (self.closest_enemy['pos'][0] == self.my_position[0] and self.closest_enemy['pos'][1] > self.my_position[1]): # down
-            blocks_between = [(self.my_position[0], i) for i in range(self.closest_enemy['pos'][1] + 1, self.my_position[1])]
-
-        elif (self.closest_enemy['pos'][1] == self.my_position[1] and self.closest_enemy['pos'][0] < self.my_position[0]): # left
-            blocks_between = [(i, self.my_position[1]) for i in range(self.closest_enemy['pos'][0] + 1, self.my_position[0])]
-
-
-        return all(self.map[i][j] == 0 for i,j in blocks_between)
 
     # function to know the direction the digdug is facing
     def get_direction(self):
@@ -587,15 +567,6 @@ class Agent():
     def distance(self, a, b):
         return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** (1 / 2)
     
-    # function to know if a pooka is traverssing
-    def is_pooka_traversing(self, state):
-        enemies = state["enemies"]
-        for enemy in enemies:
-            if enemy["name"] == "Pooka":
-                if 'traverse' in enemy:
-                    return True
-        return False
-    
     # funtion to go to a given position
     def go_to(self, position):
         if self.next != None:
@@ -652,18 +623,6 @@ class Agent():
                 key = " "
 
         return key
-    
-    def dir_to_key(self, direction):
-        if direction == 0:
-            return "w"
-        elif direction == 2:
-            return "s"
-        elif direction == 3:
-            return "a"
-        elif direction == 1:
-            return "d"
-        else:
-            return None
 
     # function to get all enemy tunnels
     def get_enemy_tunnels(self, enemies):
@@ -830,26 +789,6 @@ class Agent():
                     return False
 
         return True
-    
-    # function to go behind an enemy
-    def go_behind(self, enemy):
-        if enemy["dir"] == 0 or enemy["dir"] == 2:
-            if abs(self.my_position[1] - enemy["pos"][1]) <= 2: # has to go further
-                if self.my_position[1] < enemy["pos"][1]:
-                    return self.go_to([self.my_position[0], self.my_position[1] - 1])
-                else:
-                    return self.go_to([self.my_position[0], self.my_position[1] + 1])
-            else:
-                return self.go_to([enemy["pos"][0], self.my_position[1]])
-            
-        elif enemy["dir"] == 1 or enemy["dir"] == 3:
-            if abs(self.my_position[0] - enemy["pos"][0]) <= 3:
-                if self.my_position[0] < enemy["pos"][0]:
-                    return self.go_to([self.my_position[0] - 1, self.my_position[1]])
-                else:
-                    return self.go_to([self.my_position[0] + 1, self.my_position[1]])
-            else:
-                return self.go_to([self.my_position[0], enemy["pos"][1]])
             
     # function to see if fygar horizontal and facing digdug
     def fygar_our_way(self, enemy):
@@ -865,38 +804,6 @@ class Agent():
         if enemy["pos"][0] == self.my_position[0] or enemy["pos"][1] == self.my_position[1]:
             return True
         return False
-    
-    # function to see if there is a rock between digdug and the enemy
-    def rock_between(self, enemy):
-        if enemy["pos"][0] == self.my_position[0]: # vertical
-            if enemy["pos"][1] < self.my_position[1]: # enemy is above
-                for rock in self.state["rocks"]:
-                    if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] > enemy["pos"][1] and rock["pos"][1] < self.my_position[1]:
-                        return True
-            else:
-                for rock in self.state["rocks"]:
-                    if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] < enemy["pos"][1] and rock["pos"][1] > self.my_position[1]:
-                        return True
-        elif enemy["pos"][1] == self.my_position[1]: # horizontal
-            if enemy["pos"][0] < self.my_position[0]: # enemy is to the left
-                for rock in self.state["rocks"]:
-                    if rock["pos"][1] == enemy["pos"][1] and rock["pos"][0] > enemy["pos"][0] and rock["pos"][0] < self.my_position[0]:
-                        return True
-            else:
-                for rock in self.state["rocks"]:
-                    if rock["pos"][1] == enemy["pos"][1] and rock["pos"][0] < enemy["pos"][0] and rock["pos"][0] > self.my_position[0]:
-                        return True
-        return False
-    
-    # function to see if there is a rock above an enemy in a vertical tunnel
-    def rock_above_enemy(self):
-        for enemy in self.state['enemies']:
-            # see if the enemy is in a vertical tunnel
-            if (enemy["pos"][1] - 1 > 0 and self.map[enemy["pos"][0]][enemy["pos"][1] - 1] == 0) or (enemy["pos"][1] + 1 < self.size[1] and self.map[enemy["pos"][0]][enemy["pos"][1] + 1] == 0):
-                for rock in self.state["rocks"]:
-                    if rock["pos"][0] == enemy["pos"][0] and rock["pos"][1] < enemy["pos"][1]:
-                        return rock["pos"]
-        return None
     
     # function to see if enemy is looking at digdug
     def enemy_our_way(self, enemy):
