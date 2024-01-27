@@ -1,5 +1,6 @@
 # ia-digdug
-DigDug clone for AI teaching
+
+Final Project for the Artificial Intelligence class of 2023/2024. The objective of this project is to develop an inteligent agent that can play the classic DigDug game.
 
 ## How to install
 
