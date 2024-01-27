@@ -36,3 +36,7 @@ python -m pygame.examples.aliens
 # Tested on:
 - MacOS 13.6
 
+# Grades
+
+**Intermediate** : 16.4</br>
+**Final** : 16.3
